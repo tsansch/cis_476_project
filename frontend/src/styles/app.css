@@ -1,0 +1,14 @@
+/* Basic app styling (layout only) */
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+}
+
+button {
+  cursor: pointer;
+}
+
+main {
+  margin-top: 12px;
+}
