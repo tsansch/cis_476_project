@@ -12,3 +12,57 @@ button {
 main {
   margin-top: 12px;
 }
+
+/* Create Task form styling */
+
+.task-form {
+  border: 1px solid #ddd;
+  padding: 16px;
+  border-radius: 10px;
+  max-width: 520px;
+}
+
+.task-form h3 {
+  margin-top: 0;
+}
+
+.task-form label {
+  display: block;
+  margin-bottom: 12px;
+}
+
+.task-form input,
+.task-form textarea,
+.task-form select {
+  width: 100%;
+  padding: 10px;
+  margin-top: 6px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  box-sizing: border-box;
+  font-family: inherit;
+}
+
+.task-form button {
+  margin-top: 8px;
+}
+
+.task-form-row {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.task-form-row label {
+  flex: 1;
+  min-width: 180px;
+}
+
+.task-form-error {
+  margin-bottom: 12px;
+  padding: 10px;
+  background: #ffecec;
+  border: 1px solid #f3b1b1;
+  border-radius: 8px;
+}

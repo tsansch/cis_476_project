@@ -3,15 +3,23 @@ import FilterBar from "./FilterBar";
 import ProgressBar from "./ProgressBar";
 import TaskCard from "./TaskCard";
 
-// Tasks screen layout. We’ll wire up real data next.
+// Tasks screen layout
 export default function TaskList() {
   return (
     <div>
       <h3>Tasks</h3>
+
       <FilterBar />
-      <TaskForm />
+
+      <div style={{ marginTop: 12, marginBottom: 16 }}>
+        <TaskForm />
+      </div>
+
       <ProgressBar />
-      <TaskCard />
+
+      <div style={{ marginTop: 12 }}>
+        <TaskCard />
+      </div>
     </div>
   );
 }

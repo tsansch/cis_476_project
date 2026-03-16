@@ -1,10 +1,11 @@
 import { useState } from "react";
+import "./styles/app.css";
+
 import TaskList from "./components/TaskList";
 import WeeklyView from "./components/WeeklyView";
 import CourseTag from "./components/CourseTag";
-import "./styles/app.css";
 
-// Main layout and page switcher. UI shell for now.
+// App is the main layout + navigation between screens.
 export default function App() {
   const [view, setView] = useState("tasks");
 
