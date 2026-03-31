@@ -10,14 +10,32 @@ export default function App() {
   const [view, setView] = useState("tasks");
 
   return (
-    <div style={{ padding: 16, maxWidth: 900, margin: "0 auto" }}>
-      <header style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 16 }}>
-        <h2 style={{ margin: 0 }}>Taskboard</h2>
+    <div className="app-shell">
+      <header className="app-header">
+        <div className="app-title">
+          <h2>Taskboard</h2>
+          <div className="app-subtitle">Simple task planning and deadlines</div>
+        </div>
 
-        <nav style={{ display: "flex", gap: 8 }}>
-          <button onClick={() => setView("tasks")}>Tasks</button>
-          <button onClick={() => setView("weekly")}>Weekly</button>
-          <button onClick={() => setView("courses")}>Courses</button>
+        <nav className="tabs">
+          <button
+            className={`tab-btn ${view === "tasks" ? "active" : ""}`}
+            onClick={() => setView("tasks")}
+          >
+            Tasks
+          </button>
+          <button
+            className={`tab-btn ${view === "weekly" ? "active" : ""}`}
+            onClick={() => setView("weekly")}
+          >
+            Weekly
+          </button>
+          <button
+            className={`tab-btn ${view === "courses" ? "active" : ""}`}
+            onClick={() => setView("courses")}
+          >
+            Courses
+          </button>
         </nav>
       </header>
 

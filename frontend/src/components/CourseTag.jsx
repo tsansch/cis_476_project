@@ -3,7 +3,7 @@ export default function CourseTag() {
   return (
     <div>
       <h3>Course Tags</h3>
-      <p>Course tags (coming next)</p>
+      <p>Course tags (not implemented yet)</p>
     </div>
   );
 }

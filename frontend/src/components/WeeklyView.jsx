@@ -3,7 +3,7 @@ export default function WeeklyView() {
   return (
     <div>
       <h3>Weekly View</h3>
-      <p>Weekly view (coming next)</p>
+      <p>Weekly view (not implemented yet)</p>
     </div>
   );
 }
