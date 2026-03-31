@@ -15,6 +15,11 @@ export default function TaskList() {
     setTasks((prev) => [taskWithId, ...prev]);
   }
 
+  function handleUpdateTask(updatedTask) {
+    // Replace the task in the list with the updated version
+    setTasks((prev) => prev.map((t) => (t.id === updatedTask.id ? updatedTask : t)));
+  }
+
   return (
     <div>
       <h3 className="page-title">Tasks</h3>
@@ -36,7 +41,7 @@ export default function TaskList() {
       ) : (
         <div className="task-list">
           {tasks.map((t) => (
-            <TaskCard key={t.id} task={t} />
+            <TaskCard key={t.id} task={t} onUpdate={handleUpdateTask} />
           ))}
         </div>
       )}

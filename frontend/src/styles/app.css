@@ -172,6 +172,31 @@ main {
   font-size: 14px;
 }
 
+/* TaskCard edit mode: make the embedded form spacing tighter and consistent */
+.task-form--embedded {
+  border: none;
+  padding: 0;
+  max-width: none;
+  box-shadow: none;
+}
+
+.task-form--embedded label {
+  margin-bottom: 10px;
+}
+
+.task-form--embedded textarea {
+  resize: vertical;
+}
+
+/* Make the edit header align better inside the card */
+.task-card .card-header {
+  margin-bottom: 12px;
+}
+
+.task-card .card-header h3 {
+  font-size: 16px;
+}
+
 /* ---------- Buttons ---------- */
 
 .btn {
