@@ -1,25 +1,45 @@
+import { useState } from "react";
 import TaskForm from "./TaskForm";
 import FilterBar from "./FilterBar";
 import ProgressBar from "./ProgressBar";
 import TaskCard from "./TaskCard";
 
-// Tasks screen layout
+// TaskList shows the main task page: create tasks and view them in a list.
+// No backend yet, so tasks are stored in React state for now.
 export default function TaskList() {
+  const [tasks, setTasks] = useState([]);
+
+  function handleCreateTask(task) {
+    // Add an id so we can render each task cleanly
+    const taskWithId = { ...task, id: crypto.randomUUID(), completed: false };
+    setTasks((prev) => [taskWithId, ...prev]);
+  }
+
   return (
     <div>
-      <h3>Tasks</h3>
+      <h3 className="page-title">Tasks</h3>
 
       <FilterBar />
 
-      <div style={{ marginTop: 12, marginBottom: 16 }}>
-        <TaskForm />
+      <div className="card" style={{ marginTop: 12 }}>
+        <TaskForm onCreate={handleCreateTask} />
       </div>
 
-      <ProgressBar />
-
-      <div style={{ marginTop: 12 }}>
-        <TaskCard />
+      <div style={{ marginTop: 16 }}>
+        <ProgressBar />
       </div>
+
+      <h4 style={{ marginTop: 16, marginBottom: 8 }}>Task List</h4>
+
+      {tasks.length === 0 ? (
+        <p className="muted">No tasks yet. Add one above.</p>
+      ) : (
+        <div className="task-list">
+          {tasks.map((t) => (
+            <TaskCard key={t.id} task={t} />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
