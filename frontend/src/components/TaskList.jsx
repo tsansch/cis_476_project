@@ -20,6 +20,8 @@ export default function TaskList() {
     setTasks((prev) => prev.map((t) => (t.id === updatedTask.id ? updatedTask : t)));
   }
 
+  const completedCount = tasks.filter((t) => t.completed).length;
+
   return (
     <div>
       <h3 className="page-title">Tasks</h3>
@@ -31,8 +33,7 @@ export default function TaskList() {
       </div>
 
       <div style={{ marginTop: 16 }}>
-        <ProgressBar />
-      </div>
+        <ProgressBar total={tasks.length} completed={completedCount} />      </div>
 
       <h4 style={{ marginTop: 16, marginBottom: 8 }}>Task List</h4>
 

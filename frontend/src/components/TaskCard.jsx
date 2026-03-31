@@ -1,7 +1,7 @@
 import { useState } from "react";
 
 // TaskCard shows one task in the list.
-// This adds basic edit controls (Edit, Save, Cancel). Backend comes later.
+// This adds edit controls and a complete toggle. Backend comes later.
 export default function TaskCard({ task, onUpdate }) {
   const [isEditing, setIsEditing] = useState(false);
 
@@ -36,6 +36,11 @@ export default function TaskCard({ task, onUpdate }) {
     setIsEditing(false);
   }
 
+  function handleToggleComplete() {
+    if (!onUpdate) return;
+    onUpdate({ ...task, completed: !task.completed });
+  }
+
   return (
     <div className="task-card">
       {!isEditing ? (
@@ -49,12 +54,18 @@ export default function TaskCard({ task, onUpdate }) {
             }}
           >
             <h4 className="task-card-title" style={{ margin: 0 }}>
-              {task.title}
+              {task.completed ? `✅ ${task.title}` : task.title}
             </h4>
 
-            <button className="btn" type="button" onClick={() => setIsEditing(true)}>
-              Edit
-            </button>
+            <div style={{ display: "flex", gap: 8 }}>
+              <button className="btn" type="button" onClick={handleToggleComplete}>
+                {task.completed ? "Undo" : "Complete"}
+              </button>
+
+              <button className="btn" type="button" onClick={() => setIsEditing(true)}>
+                Edit
+              </button>
+            </div>
           </div>
 
           <div className="task-card-meta">
