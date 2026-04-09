@@ -12,6 +12,13 @@ export default function TaskCard({ task, onUpdate }) {
   const [dueDate, setDueDate] = useState(task.dueDate || "");
   const [courseTag, setCourseTag] = useState(task.courseTag || "");
 
+  function priorityBadgeClass(p) {
+    if (p === "High") return "badge badge-priority-high";
+    if (p === "Medium") return "badge badge-priority-medium";
+    if (p === "Low") return "badge badge-priority-low";
+    return "badge";
+  }
+
   function handleSave() {
     const updatedTask = {
       ...task,
@@ -54,7 +61,7 @@ export default function TaskCard({ task, onUpdate }) {
             }}
           >
             <h4 className="task-card-title" style={{ margin: 0 }}>
-              {task.completed ? `✅ ${task.title}` : task.title}
+              {task.completed ? `Completed: ${task.title}` : task.title}
             </h4>
 
             <div style={{ display: "flex", gap: 8 }}>
@@ -68,19 +75,20 @@ export default function TaskCard({ task, onUpdate }) {
             </div>
           </div>
 
-          <div className="task-card-meta">
-            {task.dueDate && <span>Due: {task.dueDate}</span>}
-            {task.courseTag && (
-              <span>{task.dueDate ? " • " : ""}Course: {task.courseTag}</span>
-            )}
+          {/* Clean badge row for task details */}
+          <div className="task-meta-row" style={{ marginTop: 10 }}>
             {task.priority && (
-              <span>
-                {(task.dueDate || task.courseTag) ? " • " : ""}Priority: {task.priority}
+              <span className={priorityBadgeClass(task.priority)}>
+                Priority: {task.priority}
               </span>
             )}
+
+            {task.dueDate && <span className="badge">Due: {task.dueDate}</span>}
+
+            {task.courseTag && <span className="badge">Course: {task.courseTag}</span>}
           </div>
 
-          {task.description && <p className="task-card-desc">{task.description}</p>}
+          {task.description && <p className="task-card-desc" style={{ marginTop: 10 }}>{task.description}</p>}
         </>
       ) : (
         <>
@@ -143,6 +151,10 @@ export default function TaskCard({ task, onUpdate }) {
                   placeholder="e.g., CIS 476"
                 />
               </label>
+            </div>
+
+            <div style={{ marginTop: 8 }}>
+              <span className={priorityBadgeClass(priority)}>Priority: {priority}</span>
             </div>
           </div>
         </>

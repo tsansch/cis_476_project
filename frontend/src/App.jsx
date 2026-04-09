@@ -5,9 +5,19 @@ import TaskList from "./components/TaskList";
 import WeeklyView from "./components/WeeklyView";
 import CourseTag from "./components/CourseTag";
 
-// App is the main layout + navigation between screens.
+// App holds task state so Tasks and Weekly can see the same data.
 export default function App() {
   const [view, setView] = useState("tasks");
+  const [tasks, setTasks] = useState([]);
+
+  function handleCreateTask(task) {
+    const taskWithId = { ...task, id: crypto.randomUUID(), completed: false };
+    setTasks((prev) => [taskWithId, ...prev]);
+  }
+
+  function handleUpdateTask(updatedTask) {
+    setTasks((prev) => prev.map((t) => (t.id === updatedTask.id ? updatedTask : t)));
+  }
 
   return (
     <div className="app-shell">
@@ -40,8 +50,12 @@ export default function App() {
       </header>
 
       <main>
-        {view === "tasks" && <TaskList />}
-        {view === "weekly" && <WeeklyView />}
+        {view === "tasks" && (
+          <TaskList tasks={tasks} onCreateTask={handleCreateTask} onUpdateTask={handleUpdateTask} />
+        )}
+
+        {view === "weekly" && <WeeklyView tasks={tasks} />}
+
         {view === "courses" && <CourseTag />}
       </main>
     </div>
