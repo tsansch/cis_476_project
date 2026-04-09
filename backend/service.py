@@ -1,14 +1,22 @@
-# Service layer for backend logic.
+from sqlalchemy.orm import Session
+from repository import TaskRepository
 
-def toggle_task_complete(task_id: str):
+# Service layer for backend logic.
+# Routes should call functions here so business logic stays in one place.
+
+def toggle_task_complete(db: Session, task_id: str):
     """
-    Toggle a tasks completed status.
-    
-    This is a plaholder until the task model & repository layer are implemented.
-    When those are ready this function will:
-    1) Get the tasks from the repository by task_id
-    2) Flip task.completed (T/F)
-    3) Save the updatedtask back to the repository
-    4) Return the updated task
+    Toggle a task's completed status.
+
+    Steps:
+    1) Load the task from the repository
+    2) Flip completed (True/False)
+    3) Save and return the updated task
     """
-    raise NotImplementedError("toggle_task_complete is waiting on Task fields/repo.")
+    repo = TaskRepository(db)
+    task = repo.get_by_id(task_id)
+
+    if not task:
+        return None
+
+    return repo.toggle_complete(task)

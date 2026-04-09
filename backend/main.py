@@ -8,6 +8,7 @@ from schemas import (
     TaskCreate, TaskUpdate, TaskResponse,
     CourseCreate, CourseUpdate, CourseResponse,
 )
+from service import toggle_task_complete
 
 app = FastAPI(title="Taskboard API")
 
@@ -63,14 +64,13 @@ def update_task(task_id: str, task_data: TaskUpdate, db: Session = Depends(get_d
     update_fields = task_data.model_dump(exclude_unset=True)
     return repo.update(task, **update_fields)
 
+# Endpoint to toggle task completion status
 @app.patch("/tasks/{task_id}/complete", response_model=TaskResponse)
-def toggle_task_complete(task_id: str, db: Session = Depends(get_db)):
-    """Toggle task completion status."""
-    repo = TaskRepository(db)
-    task = repo.get_by_id(task_id)
-    if not task:
+def mark_task_complete(task_id: str, db: Session = Depends(get_db)):
+    updated = toggle_task_complete(db, task_id)
+    if not updated:
         raise HTTPException(status_code=404, detail="Task not found")
-    return repo.toggle_complete(task)
+    return updated
 
 @app.delete("/tasks/{task_id}", status_code=204)
 def delete_task(task_id: str, db: Session = Depends(get_db)):
