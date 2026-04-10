@@ -1,22 +1,73 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import "./styles/app.css";
 
 import TaskList from "./components/TaskList";
 import WeeklyView from "./components/WeeklyView";
 import CourseTag from "./components/CourseTag";
+import {
+  fetchTasks,
+  createTask,
+  updateTask,
+  deleteTask,
+  transformTaskFromApi,
+} from "./api";
 
 // App holds task state so Tasks and Weekly can see the same data.
 export default function App() {
   const [view, setView] = useState("tasks");
   const [tasks, setTasks] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  function handleCreateTask(task) {
-    const taskWithId = { ...task, id: crypto.randomUUID(), completed: false };
-    setTasks((prev) => [taskWithId, ...prev]);
+  // Load tasks from backend on mount
+  useEffect(() => {
+    loadTasks();
+  }, []);
+
+  async function loadTasks() {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await fetchTasks();
+      setTasks(data.map(transformTaskFromApi));
+    } catch (err) {
+      setError("Failed to load tasks. Is the backend running?");
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
   }
 
-  function handleUpdateTask(updatedTask) {
-    setTasks((prev) => prev.map((t) => (t.id === updatedTask.id ? updatedTask : t)));
+  async function handleCreateTask(taskData) {
+    try {
+      const created = await createTask(taskData);
+      setTasks((prev) => [transformTaskFromApi(created), ...prev]);
+    } catch (err) {
+      setError("Failed to create task");
+      console.error(err);
+    }
+  }
+
+  async function handleUpdateTask(updatedTask) {
+    try {
+      const updated = await updateTask(updatedTask.id, updatedTask);
+      setTasks((prev) =>
+        prev.map((t) => (t.id === updated.id ? transformTaskFromApi(updated) : t))
+      );
+    } catch (err) {
+      setError("Failed to update task");
+      console.error(err);
+    }
+  }
+
+  async function handleDeleteTask(taskId) {
+    try {
+      await deleteTask(taskId);
+      setTasks((prev) => prev.filter((t) => t.id !== taskId));
+    } catch (err) {
+      setError("Failed to delete task");
+      console.error(err);
+    }
   }
 
   return (
@@ -50,13 +101,33 @@ export default function App() {
       </header>
 
       <main>
-        {view === "tasks" && (
-          <TaskList tasks={tasks} onCreateTask={handleCreateTask} onUpdateTask={handleUpdateTask} />
+        {error && (
+          <div className="error-banner">
+            {error}
+            <button className="btn" onClick={() => setError(null)} style={{ marginLeft: 12 }}>
+              Dismiss
+            </button>
+          </div>
         )}
 
-        {view === "weekly" && <WeeklyView tasks={tasks} />}
+        {loading ? (
+          <p className="muted">Loading tasks...</p>
+        ) : (
+          <>
+            {view === "tasks" && (
+              <TaskList
+                tasks={tasks}
+                onCreateTask={handleCreateTask}
+                onUpdateTask={handleUpdateTask}
+                onDeleteTask={handleDeleteTask}
+              />
+            )}
 
-        {view === "courses" && <CourseTag />}
+            {view === "weekly" && <WeeklyView tasks={tasks} />}
+
+            {view === "courses" && <CourseTag />}
+          </>
+        )}
       </main>
     </div>
   );
