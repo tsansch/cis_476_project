@@ -2,7 +2,7 @@ import { useState } from "react";
 
 // TaskCard shows one task in the list.
 // This adds edit controls and a complete toggle. Backend comes later.
-export default function TaskCard({ task, onUpdate }) {
+export default function TaskCard({ task, onUpdate, onDelete }) {
   const [isEditing, setIsEditing] = useState(false);
 
   // Local fields used while editing
@@ -71,6 +71,14 @@ export default function TaskCard({ task, onUpdate }) {
 
               <button className="btn" type="button" onClick={() => setIsEditing(true)}>
                 Edit
+              </button>
+
+              <button
+                className="btn btn-danger"
+                type="button"
+                onClick={() => onDelete && onDelete(task.id)}
+              >
+                Delete
               </button>
             </div>
           </div>

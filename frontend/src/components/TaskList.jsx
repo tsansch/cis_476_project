@@ -6,7 +6,7 @@ import TaskCard from "./TaskCard";
 
 // TaskList shows the Tasks page.
 // Tasks come from App so Weekly View can use the same list.
-export default function TaskList({ tasks, onCreateTask, onUpdateTask }) {
+export default function TaskList({ tasks, onCreateTask, onUpdateTask, onDeleteTask }) {
   const [filters, setFilters] = useState({
     status: "all",
     priority: "all",
@@ -59,7 +59,7 @@ export default function TaskList({ tasks, onCreateTask, onUpdateTask }) {
       ) : (
         <div className="task-list">
           {filteredTasks.map((t) => (
-            <TaskCard key={t.id} task={t} onUpdate={onUpdateTask} />
+            <TaskCard key={t.id} task={t} onUpdate={onUpdateTask} onDelete={onDeleteTask} />
           ))}
         </div>
       )}
