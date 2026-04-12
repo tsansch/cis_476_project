@@ -14,6 +14,8 @@ export default function TaskList({ tasks, onCreateTask, onUpdateTask, onDeleteTa
     sort: "dueAsc",
   });
 
+  const [groupByCourse, setGroupByCourse] = useState(false);
+
   const completedCount = tasks.filter((t) => t.completed).length;
 
   const filteredTasks = [...tasks]
@@ -38,11 +40,24 @@ export default function TaskList({ tasks, onCreateTask, onUpdateTask, onDeleteTa
       return 0;
     });
 
+  const groupedTasks = filteredTasks.reduce((acc, task) => {
+    const course = task.course?.name || "No Course";
+    if (!acc[course]) acc[course] = [];
+    acc[course].push(task);
+    return acc;
+  }, {});
+
   return (
     <div>
       <h3 className="page-title">Tasks</h3>
 
       <FilterBar filters={filters} onChange={setFilters} />
+
+      <div style={{ marginTop: 10 }}>
+        <button onClick={() => setGroupByCourse(!groupByCourse)}>
+          {groupByCourse ? "Show Normal List" : "Group by Course"}
+        </button>
+      </div>
 
       <div className="card" style={{ marginTop: 12 }}>
         <TaskForm onCreate={onCreateTask} />
@@ -56,10 +71,32 @@ export default function TaskList({ tasks, onCreateTask, onUpdateTask, onDeleteTa
 
       {filteredTasks.length === 0 ? (
         <p className="muted">No tasks match your filters yet.</p>
+      ) : groupByCourse ? (
+        Object.entries(groupedTasks).map(([course, tasks]) => (
+          <div key={course} style={{ marginBottom: 20 }}>
+            <h4>{course}</h4>
+
+            <div className="task-list">
+              {tasks.map((t) => (
+                <TaskCard
+                  key={t.id}
+                  task={t}
+                  onUpdate={onUpdateTask}
+                  onDelete={onDeleteTask}
+                />
+              ))}
+            </div>
+          </div>
+        ))
       ) : (
         <div className="task-list">
           {filteredTasks.map((t) => (
-            <TaskCard key={t.id} task={t} onUpdate={onUpdateTask} onDelete={onDeleteTask} />
+            <TaskCard
+              key={t.id}
+              task={t}
+              onUpdate={onUpdateTask}
+              onDelete={onDeleteTask}
+            />
           ))}
         </div>
       )}
