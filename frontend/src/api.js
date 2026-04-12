@@ -99,7 +99,9 @@ export async function deleteCourse(courseId) {
   return true;
 }
 
-// Helper to transform backend response to frontend format
+// ============ TRANSFORMERS ============
+
+// Task formatting for frontend
 export function transformTaskFromApi(task) {
   return {
     id: task.id,
@@ -113,6 +115,7 @@ export function transformTaskFromApi(task) {
   };
 }
 
+// Course formatting for frontend
 export function transformCourseFromApi(course) {
   return {
     id: course.id,
