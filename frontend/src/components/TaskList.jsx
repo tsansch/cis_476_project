@@ -40,8 +40,9 @@ export default function TaskList({ tasks, onCreateTask, onUpdateTask, onDeleteTa
       return 0;
     });
 
+  // ✅ FIXED GROUPING (IMPORTANT CHANGE HERE)
   const groupedTasks = filteredTasks.reduce((acc, task) => {
-    const course = task.course?.name || "No Course";
+    const course = task.courseTag || "No Course";
     if (!acc[course]) acc[course] = [];
     acc[course].push(task);
     return acc;
