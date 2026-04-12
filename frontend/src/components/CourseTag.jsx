@@ -1,7 +1,11 @@
 import { useEffect, useState } from "react";
+import { fetchCourses, createCourse } from "../api";
 
 export default function CourseTag() {
   const [courses, setCourses] = useState([]);
+  const [name, setName] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     loadCourses();
@@ -9,11 +13,25 @@ export default function CourseTag() {
 
   async function loadCourses() {
     try {
-      const res = await fetch("http://127.0.0.1:8000/courses");
-      const data = await res.json();
+      setLoading(true);
+      const data = await fetchCourses();
       setCourses(data);
     } catch (err) {
-      console.error("Failed to load courses", err);
+      setError("Failed to load courses");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleAddCourse() {
+    if (!name.trim()) return;
+
+    try {
+      const newCourse = await createCourse({ name });
+      setCourses((prev) => [...prev, newCourse]);
+      setName("");
+    } catch (err) {
+      setError("Failed to create course");
     }
   }
 
@@ -21,13 +39,26 @@ export default function CourseTag() {
     <div>
       <h3>Course Tags</h3>
 
-      {courses.length === 0 ? (
+      {error && <p style={{ color: "red" }}>{error}</p>}
+
+      <div style={{ marginBottom: 10 }}>
+        <input
+          placeholder="Enter course name (e.g. CIS 476)"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+        />
+        <button onClick={handleAddCourse}>Add Course</button>
+      </div>
+
+      {loading ? (
+        <p>Loading...</p>
+      ) : courses.length === 0 ? (
         <p>No courses found</p>
       ) : (
         <ul>
-          {courses.map((course) => (
-            <li key={course.id}>
-              {course.name}
+          {courses.map((c) => (
+            <li key={c.id}>
+              {c.name}
             </li>
           ))}
         </ul>
