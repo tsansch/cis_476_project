@@ -12,6 +12,11 @@ export default function TaskCard({ task, onUpdate, onDelete }) {
   const [dueDate, setDueDate] = useState(task.dueDate || "");
   const [courseTag, setCourseTag] = useState(task.courseTag || "");
 
+  // =========================
+  // NEW (REPEATING SUPPORT - SAFE ADDITION)
+  // =========================
+  const [repeatType, setRepeatType] = useState(task.repeatType || "none");
+
   function priorityBadgeClass(p) {
     if (p === "High") return "badge badge-priority-high";
     if (p === "Medium") return "badge badge-priority-medium";
@@ -27,6 +32,10 @@ export default function TaskCard({ task, onUpdate, onDelete }) {
       priority,
       dueDate,
       courseTag: courseTag.trim() || null,
+
+      // NEW (SAFE ADDITION)
+      repeatType: task.repeating ? repeatType : task.repeatType,
+      repeating: task.repeating,
     };
 
     if (onUpdate) onUpdate(updatedTask);
@@ -39,12 +48,23 @@ export default function TaskCard({ task, onUpdate, onDelete }) {
     setPriority(task.priority || "Medium");
     setDueDate(task.dueDate || "");
     setCourseTag(task.courseTag || "");
+
+    // NEW
+    setRepeatType(task.repeatType || "none");
+
     setIsEditing(false);
   }
 
   function handleToggleComplete() {
+    console.log("TOGGLE CLICKED");
     if (!onUpdate) return;
-    onUpdate({ ...task, completed: !task.completed });
+
+    onUpdate({
+      ...task,
+      completed: !task.completed,
+      repeating: task.repeating,
+      repeatType: task.repeatType,
+    });
   }
 
   return (
@@ -110,11 +130,17 @@ export default function TaskCard({ task, onUpdate, onDelete }) {
               <span className="badge">Course: {task.courseTag}</span>
             )}
 
-            {/*  URGENT BADGE ADDED HERE */}
+            {/* URGENT BADGE */}
             {(task.urgent === true || task.urgent === "true") && (
-  <span className="badge badge-priority-high">Urgent</span>
-)}
+              <span className="badge badge-priority-high">Urgent</span>
+            )}
 
+            {/* NEW: REPEATING BADGE */}
+            {task.repeating && (
+              <span className="badge" style={{ background: "#6c5ce7", color: "white" }}>
+                Repeats: {task.repeatType}
+              </span>
+            )}
           </div>
 
           {task.description && (
@@ -188,6 +214,23 @@ export default function TaskCard({ task, onUpdate, onDelete }) {
                 />
               </label>
             </div>
+
+            {/* NEW: REPEAT TYPE EDIT (ONLY SHOW IF REPEATING) */}
+            {task.repeating && (
+              <div style={{ marginTop: 10 }}>
+                <label>
+                  Repeat Type
+                  <select
+                    value={repeatType}
+                    onChange={(e) => setRepeatType(e.target.value)}
+                  >
+                    <option value="daily">Daily</option>
+                    <option value="weekly">Weekly</option>
+                    <option value="monthly">Monthly</option>
+                  </select>
+                </label>
+              </div>
+            )}
           </div>
         </>
       )}

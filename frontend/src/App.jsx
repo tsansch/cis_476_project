@@ -15,7 +15,6 @@ import {
   transformCourseFromApi,
 } from "./api";
 
-// Observer service
 import reminderService from "./components/reminderService";
 
 export default function App() {
@@ -42,7 +41,6 @@ export default function App() {
     reminderService.notify(tasks);
   }, [tasks]);
 
-  // FIXED DATE NORMALIZATION
   const toDateOnly = (dateStr) => {
     if (!dateStr) return null;
     return new Date(dateStr).toISOString().split("T")[0];
@@ -101,7 +99,7 @@ export default function App() {
   }, []);
 
   // =========================
-  //  REPEATING TASK STRATEGY (NEW FEATURE)
+  // REPEATING TASK STRATEGY
   // =========================
 
   const repeatStrategy = {
@@ -132,13 +130,11 @@ export default function App() {
 
     return {
       ...task,
-      id: undefined, // backend will assign new id
+      id: undefined,
       completed: false,
       dueDate: nextDateFn(task.dueDate),
     };
   };
-
-  // =========================
 
   function normalizeCourse(name) {
     return name.toLowerCase().replace(/\s+/g, "");
@@ -163,7 +159,7 @@ export default function App() {
       const data = await fetchCourses();
       setCourses(data.map(transformCourseFromApi));
     } catch (err) {
-      console.error("Failed to load courses", err);
+      console.error(err);
     }
   }
 
@@ -217,20 +213,29 @@ export default function App() {
   }
 
   async function handleUpdateTask(updatedTask) {
+    console.log("UPDATED TASK:", updatedTask);
+
     try {
       const updated = await updateTask(updatedTask.id, updatedTask);
 
+      const finalTask = {
+        ...transformTaskFromApi(updated),
+        repeatType:
+          updatedTask.repeatType ||
+          updated.repeatType ||
+          updatedTask.repeatType ||
+          null,
+      };
+
       setTasks((prev) =>
         prev.map((t) =>
-          t.id === updated.id ? transformTaskFromApi(updated) : t
+          t.id === updated.id ? finalTask : t
         )
       );
 
-      // =========================
-      // REPEATING TASK LOGIC (NEW)
-      // =========================
-      if (updatedTask.completed && updatedTask.repeating) {
-        const nextTask = generateNextTask(updatedTask);
+     
+      if (finalTask.completed === true && finalTask.repeating === true) {
+        const nextTask = generateNextTask(finalTask);
 
         if (nextTask) {
           const created = await createTask(nextTask);
@@ -279,36 +284,6 @@ export default function App() {
           <div className="error-banner">
             {error}
             <button className="btn" onClick={() => setError(null)}>Dismiss</button>
-          </div>
-        )}
-
-        {overdueTasks.length > 0 && (
-          <div style={{ background: "#ff4d4d", color: "white", padding: 10, marginBottom: 8 }}>
-            Overdue: {overdueTasks.length}
-          </div>
-        )}
-
-        {todayTasks.length > 0 && (
-          <div style={{ background: "#ff8c00", color: "white", padding: 10, marginBottom: 8 }}>
-            Due Today: {todayTasks.length}
-          </div>
-        )}
-
-        {tomorrowTasks.length > 0 && (
-          <div style={{ background: "#ffd24d", padding: 10, marginBottom: 8 }}>
-            Due Tomorrow: {tomorrowTasks.length}
-          </div>
-        )}
-
-        {weekTasks.length > 0 && (
-          <div style={{ background: "#4CAF50", color: "white", padding: 10, marginBottom: 8 }}>
-            Due This Week: {weekTasks.length}
-          </div>
-        )}
-
-        {monthTasks.length > 0 && (
-          <div style={{ background: "#4da6ff", color: "white", padding: 10, marginBottom: 8 }}>
-            Due This Month: {monthTasks.length}
           </div>
         )}
 

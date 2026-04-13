@@ -10,6 +10,7 @@ export default function TaskForm({ onCreate }) {
   // NEW STATES
   const [taskType, setTaskType] = useState("Normal");
   const [isRepeating, setIsRepeating] = useState(false);
+  const [repeatType, setRepeatType] = useState("weekly");
   const [isUrgent, setIsUrgent] = useState(false);
 
   const [error, setError] = useState("");
@@ -35,17 +36,20 @@ export default function TaskForm({ onCreate }) {
       dueDate,
       courseTag: courseTag.trim() || null,
 
-      // NEW FIELDS
+      // TYPE
       type: taskType,
-      repeating: isRepeating,
 
-      //  FIX: force boolean so backend cannot break it
+      // ✅ REPEATING SYSTEM (THIS IS THE FIX)
+      repeating: isRepeating,
+      repeatType: isRepeating ? repeatType : null,
+
+      // URGENT
       urgent: !!isUrgent,
     };
 
     if (onCreate) onCreate(newTask);
 
-    // RESET
+    // RESET ALL FIELDS
     setTitle("");
     setDescription("");
     setPriority("Medium");
@@ -53,6 +57,7 @@ export default function TaskForm({ onCreate }) {
     setCourseTag("");
     setTaskType("Normal");
     setIsRepeating(false);
+    setRepeatType("weekly");
     setIsUrgent(false);
   }
 
@@ -62,6 +67,7 @@ export default function TaskForm({ onCreate }) {
 
       {error && <div className="task-form-error">{error}</div>}
 
+      {/* TITLE */}
       <label>
         Title *
         <input
@@ -71,16 +77,17 @@ export default function TaskForm({ onCreate }) {
         />
       </label>
 
+      {/* DESCRIPTION */}
       <label>
         Description
         <textarea
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          placeholder="Optional notes..."
           rows={3}
         />
       </label>
 
+      {/* PRIORITY + DATE */}
       <div className="task-form-row">
         <label>
           Priority
@@ -101,12 +108,12 @@ export default function TaskForm({ onCreate }) {
         </label>
       </div>
 
+      {/* COURSE */}
       <label>
         Course tag
         <input
           value={courseTag}
           onChange={(e) => setCourseTag(e.target.value)}
-          placeholder="e.g., CIS 476"
         />
       </label>
 
@@ -130,6 +137,21 @@ export default function TaskForm({ onCreate }) {
         />
         Repeating Task
       </label>
+
+      {/* REPEAT TYPE */}
+      {isRepeating && (
+        <label>
+          Repeat Every
+          <select
+            value={repeatType}
+            onChange={(e) => setRepeatType(e.target.value)}
+          >
+            <option value="daily">Daily</option>
+            <option value="weekly">Weekly</option>
+            <option value="monthly">Monthly</option>
+          </select>
+        </label>
+      )}
 
       {/* URGENT */}
       <label>
