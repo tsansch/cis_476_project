@@ -6,6 +6,12 @@ export default function TaskForm({ onCreate }) {
   const [priority, setPriority] = useState("Medium");
   const [dueDate, setDueDate] = useState("");
   const [courseTag, setCourseTag] = useState("");
+
+  // NEW STATES
+  const [taskType, setTaskType] = useState("Normal");
+  const [isRepeating, setIsRepeating] = useState(false);
+  const [isUrgent, setIsUrgent] = useState(false);
+
   const [error, setError] = useState("");
 
   function handleSubmit(e) {
@@ -28,15 +34,24 @@ export default function TaskForm({ onCreate }) {
       priority,
       dueDate,
       courseTag: courseTag.trim() || null,
+
+      // NEW FIELDS
+      type: taskType,
+      repeating: isRepeating,
+      urgent: isUrgent,
     };
 
     if (onCreate) onCreate(newTask);
 
+    // RESET
     setTitle("");
     setDescription("");
     setPriority("Medium");
     setDueDate("");
     setCourseTag("");
+    setTaskType("Normal");
+    setIsRepeating(false);
+    setIsUrgent(false);
   }
 
   return (
@@ -91,6 +106,37 @@ export default function TaskForm({ onCreate }) {
           onChange={(e) => setCourseTag(e.target.value)}
           placeholder="e.g., CIS 476"
         />
+      </label>
+
+      {/* NEW: TASK TYPE */}
+      <label>
+        Task Type
+        <select value={taskType} onChange={(e) => setTaskType(e.target.value)}>
+          <option>Normal</option>
+          <option>Exam</option>
+          <option>Assignment</option>
+          <option>Project</option>
+        </select>
+      </label>
+
+      {/* NEW: REPEATING */}
+      <label style={{ marginTop: 10 }}>
+        <input
+          type="checkbox"
+          checked={isRepeating}
+          onChange={(e) => setIsRepeating(e.target.checked)}
+        />
+        Repeating Task
+      </label>
+
+      {/* NEW: URGENT */}
+      <label>
+        <input
+          type="checkbox"
+          checked={isUrgent}
+          onChange={(e) => setIsUrgent(e.target.checked)}
+        />
+        Mark as Urgent
       </label>
 
       <button type="submit" className="btn btn-primary">
