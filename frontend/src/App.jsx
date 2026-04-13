@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import "./styles/app.css";
 
@@ -16,6 +15,9 @@ import {
   transformCourseFromApi,
 } from "./api";
 
+// Observer service
+import reminderService from "./components/reminderService";
+
 export default function App() {
   const [view, setView] = useState("tasks");
 
@@ -25,9 +27,36 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // STEP 3: Observer state (listener output)
+  const [overdueTasks, setOverdueTasks] = useState([]);
+
   useEffect(() => {
     loadTasks();
     loadCourses();
+  }, []);
+
+  // STEP 2: Notify observer whenever tasks change
+  useEffect(() => {
+    reminderService.notify(tasks);
+  }, [tasks]);
+
+  // STEP 3: Observer listener (RECEIVES updates)
+  useEffect(() => {
+    const checkReminders = (tasksList) => {
+      const today = new Date().toISOString().split("T")[0];
+
+      const overdue = tasksList.filter(
+        (t) => t.dueDate && t.dueDate < today && !t.completed
+      );
+
+      setOverdueTasks(overdue);
+    };
+
+    reminderService.subscribe(checkReminders);
+
+    return () => {
+      reminderService.unsubscribe(checkReminders);
+    };
   }, []);
 
   function normalizeCourse(name) {
@@ -178,6 +207,13 @@ export default function App() {
             >
               Dismiss
             </button>
+          </div>
+        )}
+
+        {/* STEP 3: Reminder UI */}
+        {overdueTasks.length > 0 && (
+          <div className="error-banner">
+            You have {overdueTasks.length} overdue task(s)!
           </div>
         )}
 
