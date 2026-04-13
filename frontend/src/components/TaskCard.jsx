@@ -1,20 +1,16 @@
 import { useState } from "react";
 
 // TaskCard shows one task in the list.
+// This adds edit controls and a complete toggle.
 export default function TaskCard({ task, onUpdate, onDelete }) {
   const [isEditing, setIsEditing] = useState(false);
 
-  // Local edit states
+  // Local fields used while editing
   const [title, setTitle] = useState(task.title);
   const [description, setDescription] = useState(task.description || "");
   const [priority, setPriority] = useState(task.priority || "Medium");
   const [dueDate, setDueDate] = useState(task.dueDate || "");
   const [courseTag, setCourseTag] = useState(task.courseTag || "");
-
-  // NEW STATES
-  const [taskType, setTaskType] = useState(task.type || "Normal");
-  const [isRepeating, setIsRepeating] = useState(task.repeating || false);
-  const [isUrgent, setIsUrgent] = useState(task.urgent || false);
 
   function priorityBadgeClass(p) {
     if (p === "High") return "badge badge-priority-high";
@@ -31,11 +27,6 @@ export default function TaskCard({ task, onUpdate, onDelete }) {
       priority,
       dueDate,
       courseTag: courseTag.trim() || null,
-
-      // NEW FIELDS
-      type: taskType,
-      repeating: isRepeating,
-      urgent: isUrgent,
     };
 
     if (onUpdate) onUpdate(updatedTask);
@@ -48,11 +39,6 @@ export default function TaskCard({ task, onUpdate, onDelete }) {
     setPriority(task.priority || "Medium");
     setDueDate(task.dueDate || "");
     setCourseTag(task.courseTag || "");
-
-    setTaskType(task.type || "Normal");
-    setIsRepeating(task.repeating || false);
-    setIsUrgent(task.urgent || false);
-
     setIsEditing(false);
   }
 
@@ -70,9 +56,7 @@ export default function TaskCard({ task, onUpdate, onDelete }) {
             ? "2px solid red"
             : "1px solid #ccc",
         background:
-          task.urgent || task.priority === "High"
-            ? "#fff5f5"
-            : "white",
+          task.urgent || task.priority === "High" ? "#fff5f5" : "white",
       }}
     >
       {!isEditing ? (
@@ -85,21 +69,26 @@ export default function TaskCard({ task, onUpdate, onDelete }) {
               gap: 10,
             }}
           >
-            <h4 style={{ margin: 0 }}>
+            <h4 className="task-card-title" style={{ margin: 0 }}>
               {task.completed ? `Completed: ${task.title}` : task.title}
             </h4>
 
             <div style={{ display: "flex", gap: 8 }}>
-              <button className="btn" onClick={handleToggleComplete}>
+              <button className="btn" type="button" onClick={handleToggleComplete}>
                 {task.completed ? "Undo" : "Complete"}
               </button>
 
-              <button className="btn" onClick={() => setIsEditing(true)}>
+              <button
+                className="btn"
+                type="button"
+                onClick={() => setIsEditing(true)}
+              >
                 Edit
               </button>
 
               <button
                 className="btn btn-danger"
+                type="button"
                 onClick={() => onDelete && onDelete(task.id)}
               >
                 Delete
@@ -107,7 +96,7 @@ export default function TaskCard({ task, onUpdate, onDelete }) {
             </div>
           </div>
 
-          {/* BADGES ROW */}
+          {/* META BADGES */}
           <div className="task-meta-row" style={{ marginTop: 10 }}>
             {task.priority && (
               <span className={priorityBadgeClass(task.priority)}>
@@ -121,36 +110,29 @@ export default function TaskCard({ task, onUpdate, onDelete }) {
               <span className="badge">Course: {task.courseTag}</span>
             )}
 
-            {/* NEW BADGES */}
-            {task.type && (
-              <span className="badge">Type: {task.type}</span>
-            )}
+            {/*  URGENT BADGE ADDED HERE */}
+            {(task.urgent === true || task.urgent === "true") && (
+  <span className="badge badge-priority-high">Urgent</span>
+)}
 
-            {task.repeating && (
-              <span className="badge">🔁 Repeating</span>
-            )}
-
-            {task.urgent && (
-              <span className="badge" style={{ background: "red", color: "white" }}>
-                ⚠ Urgent
-              </span>
-            )}
           </div>
 
           {task.description && (
-            <p style={{ marginTop: 10 }}>{task.description}</p>
+            <p className="task-card-desc" style={{ marginTop: 10 }}>
+              {task.description}
+            </p>
           )}
         </>
       ) : (
         <>
-          <div style={{ display: "flex", justifyContent: "space-between" }}>
+          <div className="card-header" style={{ alignItems: "center" }}>
             <h3>Edit Task</h3>
 
             <div style={{ display: "flex", gap: 8 }}>
-              <button className="btn btn-primary" onClick={handleSave}>
+              <button className="btn btn-primary" type="button" onClick={handleSave}>
                 Save
               </button>
-              <button className="btn" onClick={handleCancel}>
+              <button className="btn" type="button" onClick={handleCancel}>
                 Cancel
               </button>
             </div>
@@ -160,7 +142,10 @@ export default function TaskCard({ task, onUpdate, onDelete }) {
             <div className="task-form-row">
               <label>
                 Title
-                <input value={title} onChange={(e) => setTitle(e.target.value)} />
+                <input
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                />
               </label>
 
               <label>
@@ -185,7 +170,10 @@ export default function TaskCard({ task, onUpdate, onDelete }) {
             <div className="task-form-row">
               <label>
                 Priority
-                <select value={priority} onChange={(e) => setPriority(e.target.value)}>
+                <select
+                  value={priority}
+                  onChange={(e) => setPriority(e.target.value)}
+                >
                   <option>Low</option>
                   <option>Medium</option>
                   <option>High</option>
@@ -200,35 +188,6 @@ export default function TaskCard({ task, onUpdate, onDelete }) {
                 />
               </label>
             </div>
-
-            {/* NEW EDIT FIELDS */}
-            <label>
-              Task Type
-              <select value={taskType} onChange={(e) => setTaskType(e.target.value)}>
-                <option>Normal</option>
-                <option>Exam</option>
-                <option>Assignment</option>
-                <option>Project</option>
-              </select>
-            </label>
-
-            <label style={{ marginTop: 8 }}>
-              <input
-                type="checkbox"
-                checked={isRepeating}
-                onChange={(e) => setIsRepeating(e.target.checked)}
-              />
-              Repeating Task
-            </label>
-
-            <label>
-              <input
-                type="checkbox"
-                checked={isUrgent}
-                onChange={(e) => setIsUrgent(e.target.checked)}
-              />
-              Mark as Urgent
-            </label>
           </div>
         </>
       )}

@@ -38,7 +38,9 @@ export default function TaskForm({ onCreate }) {
       // NEW FIELDS
       type: taskType,
       repeating: isRepeating,
-      urgent: isUrgent,
+
+      //  FIX: force boolean so backend cannot break it
+      urgent: !!isUrgent,
     };
 
     if (onCreate) onCreate(newTask);
@@ -108,7 +110,7 @@ export default function TaskForm({ onCreate }) {
         />
       </label>
 
-      {/* NEW: TASK TYPE */}
+      {/* TASK TYPE */}
       <label>
         Task Type
         <select value={taskType} onChange={(e) => setTaskType(e.target.value)}>
@@ -119,7 +121,7 @@ export default function TaskForm({ onCreate }) {
         </select>
       </label>
 
-      {/* NEW: REPEATING */}
+      {/* REPEATING */}
       <label style={{ marginTop: 10 }}>
         <input
           type="checkbox"
@@ -129,7 +131,7 @@ export default function TaskForm({ onCreate }) {
         Repeating Task
       </label>
 
-      {/* NEW: URGENT */}
+      {/* URGENT */}
       <label>
         <input
           type="checkbox"

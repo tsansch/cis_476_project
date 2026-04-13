@@ -42,7 +42,7 @@ export default function App() {
     reminderService.notify(tasks);
   }, [tasks]);
 
-  // FIXED DATE NORMALIZATION (IMPORTANT)
+  // FIXED DATE NORMALIZATION
   const toDateOnly = (dateStr) => {
     if (!dateStr) return null;
     return new Date(dateStr).toISOString().split("T")[0];
@@ -99,6 +99,46 @@ export default function App() {
     reminderService.subscribe(listener);
     return () => reminderService.unsubscribe(listener);
   }, []);
+
+  // =========================
+  //  REPEATING TASK STRATEGY (NEW FEATURE)
+  // =========================
+
+  const repeatStrategy = {
+    daily: (date) => {
+      const d = new Date(date);
+      d.setDate(d.getDate() + 1);
+      return d.toISOString().split("T")[0];
+    },
+
+    weekly: (date) => {
+      const d = new Date(date);
+      d.setDate(d.getDate() + 7);
+      return d.toISOString().split("T")[0];
+    },
+
+    monthly: (date) => {
+      const d = new Date(date);
+      d.setMonth(d.getMonth() + 1);
+      return d.toISOString().split("T")[0];
+    },
+  };
+
+  const generateNextTask = (task) => {
+    if (!task.repeating || !task.repeatType) return null;
+
+    const nextDateFn = repeatStrategy[task.repeatType];
+    if (!nextDateFn) return null;
+
+    return {
+      ...task,
+      id: undefined, // backend will assign new id
+      completed: false,
+      dueDate: nextDateFn(task.dueDate),
+    };
+  };
+
+  // =========================
 
   function normalizeCourse(name) {
     return name.toLowerCase().replace(/\s+/g, "");
@@ -185,6 +225,22 @@ export default function App() {
           t.id === updated.id ? transformTaskFromApi(updated) : t
         )
       );
+
+      // =========================
+      // REPEATING TASK LOGIC (NEW)
+      // =========================
+      if (updatedTask.completed && updatedTask.repeating) {
+        const nextTask = generateNextTask(updatedTask);
+
+        if (nextTask) {
+          const created = await createTask(nextTask);
+
+          setTasks((prev) => [
+            transformTaskFromApi(created),
+            ...prev,
+          ]);
+        }
+      }
     } catch (err) {
       setError("Failed to update task");
       console.error(err);
