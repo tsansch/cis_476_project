@@ -1,9 +1,17 @@
 import { useEffect, useState } from "react";
-import { fetchCourses, createCourse, transformCourseFromApi } from "../api";
+import {
+  fetchCourses,
+  createCourse,
+  updateCourse,
+  deleteCourse,
+  transformCourseFromApi,
+} from "../api";
 
 export default function CourseTag() {
   const [courses, setCourses] = useState([]);
   const [name, setName] = useState("");
+  const [editingId, setEditingId] = useState(null);
+  const [editValue, setEditValue] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -14,14 +22,9 @@ export default function CourseTag() {
   async function loadCourses() {
     try {
       setLoading(true);
-      setError(null);
-
       const data = await fetchCourses();
-
-      // IMPORTANT FIX: normalize backend data
       setCourses(data.map(transformCourseFromApi));
     } catch (err) {
-      console.error(err);
       setError("Failed to load courses");
     } finally {
       setLoading(false);
@@ -34,7 +37,6 @@ export default function CourseTag() {
     try {
       const newCourse = await createCourse({ name });
 
-      // FIX: ensure consistent format
       setCourses((prev) => [
         ...prev,
         transformCourseFromApi(newCourse),
@@ -42,8 +44,38 @@ export default function CourseTag() {
 
       setName("");
     } catch (err) {
-      console.error(err);
       setError("Failed to create course");
+    }
+  }
+
+  async function handleDeleteCourse(id) {
+    try {
+      await deleteCourse(id);
+      setCourses((prev) => prev.filter((c) => c.id !== id));
+    } catch (err) {
+      setError("Failed to delete course");
+    }
+  }
+
+  function startEdit(course) {
+    setEditingId(course.id);
+    setEditValue(course.name);
+  }
+
+  async function handleSaveEdit(id) {
+    try {
+      const updated = await updateCourse(id, { name: editValue });
+
+      setCourses((prev) =>
+        prev.map((c) =>
+          c.id === id ? transformCourseFromApi(updated) : c
+        )
+      );
+
+      setEditingId(null);
+      setEditValue("");
+    } catch (err) {
+      setError("Failed to update course");
     }
   }
 
@@ -59,9 +91,7 @@ export default function CourseTag() {
           value={name}
           onChange={(e) => setName(e.target.value)}
         />
-        <button onClick={handleAddCourse}>
-          Add Course
-        </button>
+        <button onClick={handleAddCourse}>Add Course</button>
       </div>
 
       {loading ? (
@@ -71,8 +101,36 @@ export default function CourseTag() {
       ) : (
         <ul>
           {courses.map((c) => (
-            <li key={c.id}>
-              {c.name}
+            <li key={c.id} style={{ marginBottom: 10 }}>
+              {editingId === c.id ? (
+                <>
+                  <input
+                    value={editValue}
+                    onChange={(e) => setEditValue(e.target.value)}
+                  />
+                  <button onClick={() => handleSaveEdit(c.id)}>
+                    Save
+                  </button>
+                </>
+              ) : (
+                <>
+                  {c.name}
+
+                  <button
+                    onClick={() => startEdit(c)}
+                    style={{ marginLeft: 10 }}
+                  >
+                    Edit
+                  </button>
+
+                  <button
+                    onClick={() => handleDeleteCourse(c.id)}
+                    style={{ marginLeft: 5 }}
+                  >
+                    Delete
+                  </button>
+                </>
+              )}
             </li>
           ))}
         </ul>
@@ -80,3 +138,4 @@ export default function CourseTag() {
     </div>
   );
 }
+
