@@ -27,36 +27,77 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // STEP 3: Observer state (listener output)
   const [overdueTasks, setOverdueTasks] = useState([]);
+  const [todayTasks, setTodayTasks] = useState([]);
+  const [tomorrowTasks, setTomorrowTasks] = useState([]);
+  const [weekTasks, setWeekTasks] = useState([]);
+  const [monthTasks, setMonthTasks] = useState([]);
 
   useEffect(() => {
     loadTasks();
     loadCourses();
   }, []);
 
-  // STEP 2: Notify observer whenever tasks change
   useEffect(() => {
     reminderService.notify(tasks);
   }, [tasks]);
 
-  // STEP 3: Observer listener (RECEIVES updates)
+  // FIXED DATE NORMALIZATION (IMPORTANT)
+  const toDateOnly = (dateStr) => {
+    if (!dateStr) return null;
+    return new Date(dateStr).toISOString().split("T")[0];
+  };
+
   useEffect(() => {
-    const checkReminders = (tasksList) => {
+    const listener = (tasksList) => {
       const today = new Date().toISOString().split("T")[0];
 
-      const overdue = tasksList.filter(
-        (t) => t.dueDate && t.dueDate < today && !t.completed
-      );
+      const tomorrowDate = new Date();
+      tomorrowDate.setDate(tomorrowDate.getDate() + 1);
+      const tomorrow = tomorrowDate.toISOString().split("T")[0];
+
+      const weekEndDate = new Date();
+      weekEndDate.setDate(weekEndDate.getDate() + 7);
+      const weekEnd = weekEndDate.toISOString().split("T")[0];
+
+      const monthEndDate = new Date();
+      monthEndDate.setMonth(monthEndDate.getMonth() + 1);
+      const monthEnd = monthEndDate.toISOString().split("T")[0];
+
+      const overdue = tasksList.filter((t) => {
+        const d = toDateOnly(t.dueDate);
+        return d && d < today && !t.completed;
+      });
+
+      const todayList = tasksList.filter((t) => {
+        const d = toDateOnly(t.dueDate);
+        return d === today && !t.completed;
+      });
+
+      const tomorrowList = tasksList.filter((t) => {
+        const d = toDateOnly(t.dueDate);
+        return d === tomorrow && !t.completed;
+      });
+
+      const weekList = tasksList.filter((t) => {
+        const d = toDateOnly(t.dueDate);
+        return d && d > tomorrow && d <= weekEnd && !t.completed;
+      });
+
+      const monthList = tasksList.filter((t) => {
+        const d = toDateOnly(t.dueDate);
+        return d && d > weekEnd && d <= monthEnd && !t.completed;
+      });
 
       setOverdueTasks(overdue);
+      setTodayTasks(todayList);
+      setTomorrowTasks(tomorrowList);
+      setWeekTasks(weekList);
+      setMonthTasks(monthList);
     };
 
-    reminderService.subscribe(checkReminders);
-
-    return () => {
-      reminderService.unsubscribe(checkReminders);
-    };
+    reminderService.subscribe(listener);
+    return () => reminderService.unsubscribe(listener);
   }, []);
 
   function normalizeCourse(name) {
@@ -104,9 +145,7 @@ export default function App() {
         } else {
           const res = await fetch("http://localhost:8000/courses", {
             method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               name: rawCourse.toUpperCase().replace(/\s+/g, ""),
             }),
@@ -173,26 +212,9 @@ export default function App() {
         </div>
 
         <nav className="tabs">
-          <button
-            className={`tab-btn ${view === "tasks" ? "active" : ""}`}
-            onClick={() => setView("tasks")}
-          >
-            Tasks
-          </button>
-
-          <button
-            className={`tab-btn ${view === "weekly" ? "active" : ""}`}
-            onClick={() => setView("weekly")}
-          >
-            Weekly
-          </button>
-
-          <button
-            className={`tab-btn ${view === "courses" ? "active" : ""}`}
-            onClick={() => setView("courses")}
-          >
-            Courses
-          </button>
+          <button className={`tab-btn ${view === "tasks" ? "active" : ""}`} onClick={() => setView("tasks")}>Tasks</button>
+          <button className={`tab-btn ${view === "weekly" ? "active" : ""}`} onClick={() => setView("weekly")}>Weekly</button>
+          <button className={`tab-btn ${view === "courses" ? "active" : ""}`} onClick={() => setView("courses")}>Courses</button>
         </nav>
       </header>
 
@@ -200,20 +222,37 @@ export default function App() {
         {error && (
           <div className="error-banner">
             {error}
-            <button
-              className="btn"
-              onClick={() => setError(null)}
-              style={{ marginLeft: 12 }}
-            >
-              Dismiss
-            </button>
+            <button className="btn" onClick={() => setError(null)}>Dismiss</button>
           </div>
         )}
 
-        {/* STEP 3: Reminder UI */}
         {overdueTasks.length > 0 && (
-          <div className="error-banner">
-            You have {overdueTasks.length} overdue task(s)!
+          <div style={{ background: "#ff4d4d", color: "white", padding: 10, marginBottom: 8 }}>
+            Overdue: {overdueTasks.length}
+          </div>
+        )}
+
+        {todayTasks.length > 0 && (
+          <div style={{ background: "#ff8c00", color: "white", padding: 10, marginBottom: 8 }}>
+            Due Today: {todayTasks.length}
+          </div>
+        )}
+
+        {tomorrowTasks.length > 0 && (
+          <div style={{ background: "#ffd24d", padding: 10, marginBottom: 8 }}>
+            Due Tomorrow: {tomorrowTasks.length}
+          </div>
+        )}
+
+        {weekTasks.length > 0 && (
+          <div style={{ background: "#4CAF50", color: "white", padding: 10, marginBottom: 8 }}>
+            Due This Week: {weekTasks.length}
+          </div>
+        )}
+
+        {monthTasks.length > 0 && (
+          <div style={{ background: "#4da6ff", color: "white", padding: 10, marginBottom: 8 }}>
+            Due This Month: {monthTasks.length}
           </div>
         )}
 
@@ -233,9 +272,7 @@ export default function App() {
 
             {view === "weekly" && <WeeklyView tasks={tasks} />}
 
-            {view === "courses" && (
-              <CourseTag courses={courses} />
-            )}
+            {view === "courses" && <CourseTag courses={courses} />}
           </>
         )}
       </main>
