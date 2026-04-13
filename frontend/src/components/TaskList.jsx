@@ -24,27 +24,49 @@ export default function TaskList({ tasks, onCreateTask, onUpdateTask, onDeleteTa
       if (filters.status === "active") return !t.completed;
       return t.completed;
     })
-    .filter((t) => (filters.priority === "all" ? true : t.priority === filters.priority))
+    .filter((t) =>
+      filters.priority === "all" ? true : t.priority === filters.priority
+    )
+
+    // FIXED FILTER (SAFE + CONSISTENT)
     .filter((t) => {
       const q = filters.course.trim().toLowerCase();
       if (!q) return true;
-      return (t.courseTag || "").toLowerCase().includes(q);
+
+      const courseName = (
+        t.course?.name ||
+        t.courseTag ||
+        ""
+      ).toLowerCase();
+
+      return courseName.includes(q);
     })
+
     .sort((a, b) => {
-      if (filters.sort === "dueAsc") return (a.dueDate || "").localeCompare(b.dueDate || "");
-      if (filters.sort === "dueDesc") return (b.dueDate || "").localeCompare(a.dueDate || "");
+      if (filters.sort === "dueAsc")
+        return (a.dueDate || "").localeCompare(b.dueDate || "");
+
+      if (filters.sort === "dueDesc")
+        return (b.dueDate || "").localeCompare(a.dueDate || "");
+
       if (filters.sort === "priority") {
         const rank = { High: 3, Medium: 2, Low: 1 };
         return (rank[b.priority] || 0) - (rank[a.priority] || 0);
       }
+
       return 0;
     });
 
-  // ✅ FIXED GROUPING (IMPORTANT CHANGE HERE)
+  // FIXED GROUPING (SAFE + MATCHES FILTER)
   const groupedTasks = filteredTasks.reduce((acc, task) => {
-    const course = task.courseTag || "No Course";
-    if (!acc[course]) acc[course] = [];
-    acc[course].push(task);
+    const courseName =
+      task.course?.name ||
+      task.courseTag ||
+      "No Course";
+
+    if (!acc[courseName]) acc[courseName] = [];
+    acc[courseName].push(task);
+
     return acc;
   }, {});
 

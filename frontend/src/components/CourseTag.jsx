@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { fetchCourses, createCourse } from "../api";
+import { fetchCourses, createCourse, transformCourseFromApi } from "../api";
 
 export default function CourseTag() {
   const [courses, setCourses] = useState([]);
@@ -14,9 +14,14 @@ export default function CourseTag() {
   async function loadCourses() {
     try {
       setLoading(true);
+      setError(null);
+
       const data = await fetchCourses();
-      setCourses(data);
+
+      // IMPORTANT FIX: normalize backend data
+      setCourses(data.map(transformCourseFromApi));
     } catch (err) {
+      console.error(err);
       setError("Failed to load courses");
     } finally {
       setLoading(false);
@@ -28,9 +33,16 @@ export default function CourseTag() {
 
     try {
       const newCourse = await createCourse({ name });
-      setCourses((prev) => [...prev, newCourse]);
+
+      // FIX: ensure consistent format
+      setCourses((prev) => [
+        ...prev,
+        transformCourseFromApi(newCourse),
+      ]);
+
       setName("");
     } catch (err) {
+      console.error(err);
       setError("Failed to create course");
     }
   }
@@ -47,7 +59,9 @@ export default function CourseTag() {
           value={name}
           onChange={(e) => setName(e.target.value)}
         />
-        <button onClick={handleAddCourse}>Add Course</button>
+        <button onClick={handleAddCourse}>
+          Add Course
+        </button>
       </div>
 
       {loading ? (

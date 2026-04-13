@@ -4,24 +4,29 @@ import "./styles/app.css";
 import TaskList from "./components/TaskList";
 import WeeklyView from "./components/WeeklyView";
 import CourseTag from "./components/CourseTag";
+
 import {
   fetchTasks,
   createTask,
   updateTask,
   deleteTask,
+  fetchCourses,
   transformTaskFromApi,
+  transformCourseFromApi,
 } from "./api";
 
-// App holds task state so Tasks and Weekly can see the same data.
 export default function App() {
   const [view, setView] = useState("tasks");
+
   const [tasks, setTasks] = useState([]);
+  const [courses, setCourses] = useState([]);
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Load tasks from backend on mount
   useEffect(() => {
     loadTasks();
+    loadCourses();
   }, []);
 
   async function loadTasks() {
@@ -38,10 +43,60 @@ export default function App() {
     }
   }
 
+  async function loadCourses() {
+    try {
+      const data = await fetchCourses();
+      setCourses(data.map(transformCourseFromApi));
+    } catch (err) {
+      console.error("Failed to load courses", err);
+    }
+  }
+
+  // IMPORTANT FIX IS HERE
   async function handleCreateTask(taskData) {
     try {
-      const created = await createTask(taskData);
-      setTasks((prev) => [transformTaskFromApi(created), ...prev]);
+      let courseId = null;
+
+      if (taskData.courseTag && taskData.courseTag.trim() !== "") {
+        const existing = courses.find(
+          (c) =>
+            c.name.toLowerCase().trim() ===
+            taskData.courseTag.toLowerCase().trim()
+        );
+
+        if (existing) {
+          courseId = existing.id;
+        } else {
+          const res = await fetch("http://localhost:8000/courses", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              name: taskData.courseTag,
+            }),
+          });
+
+          const newCourse = await res.json();
+
+          courseId = newCourse.id;
+
+          setCourses((prev) => [
+            ...prev,
+            transformCourseFromApi(newCourse),
+          ]);
+        }
+      }
+
+      const created = await createTask({
+        ...taskData,
+        courseId: courseId,
+      });
+
+      setTasks((prev) => [
+        transformTaskFromApi(created),
+        ...prev,
+      ]);
     } catch (err) {
       setError("Failed to create task");
       console.error(err);
@@ -52,7 +107,9 @@ export default function App() {
     try {
       const updated = await updateTask(updatedTask.id, updatedTask);
       setTasks((prev) =>
-        prev.map((t) => (t.id === updated.id ? transformTaskFromApi(updated) : t))
+        prev.map((t) =>
+          t.id === updated.id ? transformTaskFromApi(updated) : t
+        )
       );
     } catch (err) {
       setError("Failed to update task");
@@ -75,7 +132,9 @@ export default function App() {
       <header className="app-header">
         <div className="app-title">
           <h2>Taskboard</h2>
-          <div className="app-subtitle">Simple task planning and deadlines</div>
+          <div className="app-subtitle">
+            Simple task planning and deadlines
+          </div>
         </div>
 
         <nav className="tabs">
@@ -85,12 +144,14 @@ export default function App() {
           >
             Tasks
           </button>
+
           <button
             className={`tab-btn ${view === "weekly" ? "active" : ""}`}
             onClick={() => setView("weekly")}
           >
             Weekly
           </button>
+
           <button
             className={`tab-btn ${view === "courses" ? "active" : ""}`}
             onClick={() => setView("courses")}
@@ -104,7 +165,11 @@ export default function App() {
         {error && (
           <div className="error-banner">
             {error}
-            <button className="btn" onClick={() => setError(null)} style={{ marginLeft: 12 }}>
+            <button
+              className="btn"
+              onClick={() => setError(null)}
+              style={{ marginLeft: 12 }}
+            >
               Dismiss
             </button>
           </div>
@@ -117,6 +182,7 @@ export default function App() {
             {view === "tasks" && (
               <TaskList
                 tasks={tasks}
+                courses={courses}
                 onCreateTask={handleCreateTask}
                 onUpdateTask={handleUpdateTask}
                 onDeleteTask={handleDeleteTask}
@@ -125,7 +191,9 @@ export default function App() {
 
             {view === "weekly" && <WeeklyView tasks={tasks} />}
 
-            {view === "courses" && <CourseTag />}
+            {view === "courses" && (
+              <CourseTag courses={courses} />
+            )}
           </>
         )}
       </main>
