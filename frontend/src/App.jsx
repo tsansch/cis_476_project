@@ -29,6 +29,10 @@ export default function App() {
     loadCourses();
   }, []);
 
+  function normalizeCourse(name) {
+    return name.toLowerCase().replace(/\s+/g, "");
+  }
+
   async function loadTasks() {
     try {
       setLoading(true);
@@ -52,16 +56,17 @@ export default function App() {
     }
   }
 
-  // IMPORTANT FIX IS HERE
   async function handleCreateTask(taskData) {
     try {
       let courseId = null;
 
-      if (taskData.courseTag && taskData.courseTag.trim() !== "") {
+      const rawCourse = taskData.courseTag?.trim();
+
+      if (rawCourse) {
+        const normalizedInput = normalizeCourse(rawCourse);
+
         const existing = courses.find(
-          (c) =>
-            c.name.toLowerCase().trim() ===
-            taskData.courseTag.toLowerCase().trim()
+          (c) => normalizeCourse(c.name) === normalizedInput
         );
 
         if (existing) {
@@ -73,7 +78,7 @@ export default function App() {
               "Content-Type": "application/json",
             },
             body: JSON.stringify({
-              name: taskData.courseTag,
+              name: rawCourse.toUpperCase().replace(/\s+/g, ""),
             }),
           });
 
@@ -90,7 +95,7 @@ export default function App() {
 
       const created = await createTask({
         ...taskData,
-        courseId: courseId,
+        courseId,
       });
 
       setTasks((prev) => [
@@ -200,3 +205,4 @@ export default function App() {
     </div>
   );
 }
+
