@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import "./styles/app.css";
 
@@ -83,7 +84,6 @@ export default function App() {
           });
 
           const newCourse = await res.json();
-
           courseId = newCourse.id;
 
           setCourses((prev) => [
@@ -111,6 +111,7 @@ export default function App() {
   async function handleUpdateTask(updatedTask) {
     try {
       const updated = await updateTask(updatedTask.id, updatedTask);
+
       setTasks((prev) =>
         prev.map((t) =>
           t.id === updated.id ? transformTaskFromApi(updated) : t
@@ -205,4 +206,3 @@ export default function App() {
     </div>
   );
 }
-

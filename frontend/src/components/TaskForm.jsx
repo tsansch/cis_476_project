@@ -1,7 +1,5 @@
 import { useState } from "react";
 
-// TaskForm lets the user enter a new task.
-// ** The backend is not ready yet, so tasks are stored in frontend for now. **
 export default function TaskForm({ onCreate }) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -18,6 +16,7 @@ export default function TaskForm({ onCreate }) {
       setError("Please enter a title.");
       return;
     }
+
     if (!dueDate) {
       setError("Please choose a due date.");
       return;
@@ -31,7 +30,6 @@ export default function TaskForm({ onCreate }) {
       courseTag: courseTag.trim() || null,
     };
 
-    // Send the new task to the parent component (TaskList)
     if (onCreate) onCreate(newTask);
 
     setTitle("");
@@ -95,7 +93,9 @@ export default function TaskForm({ onCreate }) {
         />
       </label>
 
-      <button type="submit" className="btn btn-primary">Create task</button>
+      <button type="submit" className="btn btn-primary">
+        Create task
+      </button>
     </form>
   );
 }
