@@ -1,16 +1,20 @@
 import { useState } from "react";
 
 // TaskCard shows one task in the list.
-// This adds edit controls and a complete toggle. Backend comes later.
 export default function TaskCard({ task, onUpdate, onDelete }) {
   const [isEditing, setIsEditing] = useState(false);
 
-  // Local fields used while editing
+  // Local edit states
   const [title, setTitle] = useState(task.title);
   const [description, setDescription] = useState(task.description || "");
   const [priority, setPriority] = useState(task.priority || "Medium");
   const [dueDate, setDueDate] = useState(task.dueDate || "");
   const [courseTag, setCourseTag] = useState(task.courseTag || "");
+
+  // NEW STATES
+  const [taskType, setTaskType] = useState(task.type || "Normal");
+  const [isRepeating, setIsRepeating] = useState(task.repeating || false);
+  const [isUrgent, setIsUrgent] = useState(task.urgent || false);
 
   function priorityBadgeClass(p) {
     if (p === "High") return "badge badge-priority-high";
@@ -27,6 +31,11 @@ export default function TaskCard({ task, onUpdate, onDelete }) {
       priority,
       dueDate,
       courseTag: courseTag.trim() || null,
+
+      // NEW FIELDS
+      type: taskType,
+      repeating: isRepeating,
+      urgent: isUrgent,
     };
 
     if (onUpdate) onUpdate(updatedTask);
@@ -34,12 +43,16 @@ export default function TaskCard({ task, onUpdate, onDelete }) {
   }
 
   function handleCancel() {
-    // Reset edits back to original task values
     setTitle(task.title);
     setDescription(task.description || "");
     setPriority(task.priority || "Medium");
     setDueDate(task.dueDate || "");
     setCourseTag(task.courseTag || "");
+
+    setTaskType(task.type || "Normal");
+    setIsRepeating(task.repeating || false);
+    setIsUrgent(task.urgent || false);
+
     setIsEditing(false);
   }
 
@@ -49,7 +62,19 @@ export default function TaskCard({ task, onUpdate, onDelete }) {
   }
 
   return (
-    <div className="task-card">
+    <div
+      className="task-card"
+      style={{
+        border:
+          task.urgent || task.priority === "High"
+            ? "2px solid red"
+            : "1px solid #ccc",
+        background:
+          task.urgent || task.priority === "High"
+            ? "#fff5f5"
+            : "white",
+      }}
+    >
       {!isEditing ? (
         <>
           <div
@@ -60,22 +85,21 @@ export default function TaskCard({ task, onUpdate, onDelete }) {
               gap: 10,
             }}
           >
-            <h4 className="task-card-title" style={{ margin: 0 }}>
+            <h4 style={{ margin: 0 }}>
               {task.completed ? `Completed: ${task.title}` : task.title}
             </h4>
 
             <div style={{ display: "flex", gap: 8 }}>
-              <button className="btn" type="button" onClick={handleToggleComplete}>
+              <button className="btn" onClick={handleToggleComplete}>
                 {task.completed ? "Undo" : "Complete"}
               </button>
 
-              <button className="btn" type="button" onClick={() => setIsEditing(true)}>
+              <button className="btn" onClick={() => setIsEditing(true)}>
                 Edit
               </button>
 
               <button
                 className="btn btn-danger"
-                type="button"
                 onClick={() => onDelete && onDelete(task.id)}
               >
                 Delete
@@ -83,7 +107,7 @@ export default function TaskCard({ task, onUpdate, onDelete }) {
             </div>
           </div>
 
-          {/* Clean badge row for task details */}
+          {/* BADGES ROW */}
           <div className="task-meta-row" style={{ marginTop: 10 }}>
             {task.priority && (
               <span className={priorityBadgeClass(task.priority)}>
@@ -93,27 +117,45 @@ export default function TaskCard({ task, onUpdate, onDelete }) {
 
             {task.dueDate && <span className="badge">Due: {task.dueDate}</span>}
 
-            {task.courseTag && <span className="badge">Course: {task.courseTag}</span>}
+            {task.courseTag && (
+              <span className="badge">Course: {task.courseTag}</span>
+            )}
+
+            {/* NEW BADGES */}
+            {task.type && (
+              <span className="badge">Type: {task.type}</span>
+            )}
+
+            {task.repeating && (
+              <span className="badge">🔁 Repeating</span>
+            )}
+
+            {task.urgent && (
+              <span className="badge" style={{ background: "red", color: "white" }}>
+                ⚠ Urgent
+              </span>
+            )}
           </div>
 
-          {task.description && <p className="task-card-desc" style={{ marginTop: 10 }}>{task.description}</p>}
+          {task.description && (
+            <p style={{ marginTop: 10 }}>{task.description}</p>
+          )}
         </>
       ) : (
         <>
-          <div className="card-header" style={{ alignItems: "center" }}>
+          <div style={{ display: "flex", justifyContent: "space-between" }}>
             <h3>Edit Task</h3>
 
             <div style={{ display: "flex", gap: 8 }}>
-              <button className="btn btn-primary" type="button" onClick={handleSave}>
+              <button className="btn btn-primary" onClick={handleSave}>
                 Save
               </button>
-              <button className="btn" type="button" onClick={handleCancel}>
+              <button className="btn" onClick={handleCancel}>
                 Cancel
               </button>
             </div>
           </div>
 
-          {/* Embedded form layout (no extra card border/padding inside TaskCard) */}
           <div className="task-form task-form--embedded">
             <div className="task-form-row">
               <label>
@@ -137,7 +179,6 @@ export default function TaskCard({ task, onUpdate, onDelete }) {
                 rows={3}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                placeholder="Optional notes..."
               />
             </label>
 
@@ -156,14 +197,38 @@ export default function TaskCard({ task, onUpdate, onDelete }) {
                 <input
                   value={courseTag}
                   onChange={(e) => setCourseTag(e.target.value)}
-                  placeholder="e.g., CIS 476"
                 />
               </label>
             </div>
 
-            <div style={{ marginTop: 8 }}>
-              <span className={priorityBadgeClass(priority)}>Priority: {priority}</span>
-            </div>
+            {/* NEW EDIT FIELDS */}
+            <label>
+              Task Type
+              <select value={taskType} onChange={(e) => setTaskType(e.target.value)}>
+                <option>Normal</option>
+                <option>Exam</option>
+                <option>Assignment</option>
+                <option>Project</option>
+              </select>
+            </label>
+
+            <label style={{ marginTop: 8 }}>
+              <input
+                type="checkbox"
+                checked={isRepeating}
+                onChange={(e) => setIsRepeating(e.target.checked)}
+              />
+              Repeating Task
+            </label>
+
+            <label>
+              <input
+                type="checkbox"
+                checked={isUrgent}
+                onChange={(e) => setIsUrgent(e.target.checked)}
+              />
+              Mark as Urgent
+            </label>
           </div>
         </>
       )}
