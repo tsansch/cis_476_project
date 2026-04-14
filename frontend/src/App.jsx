@@ -33,6 +33,14 @@ export default function App() {
   const [weekTasks, setWeekTasks] = useState([]);
   const [monthTasks, setMonthTasks] = useState([]);
 
+  const [dismissedBanners, setDismissedBanners] = useState({
+    overdue: false,
+    today: false,
+    tomorrow: false,
+    week: false,
+    month: false,
+  }); // tracks closed banners (4/14)
+
   useEffect(() => {
     loadTasks();
     loadCourses();
@@ -41,6 +49,29 @@ export default function App() {
   useEffect(() => {
     reminderService.notify(tasks);
   }, [tasks]);
+
+    function handleDismissBanner(type) {
+    setDismissedBanners((prev) => ({
+      ...prev,
+      [type]: true,
+    })); // hides only the selected banner (4/14)
+  }
+
+  useEffect(() => {
+    setDismissedBanners((prev) => ({
+      overdue: overdueTasks.length > 0 ? prev.overdue : false,
+      today: todayTasks.length > 0 ? prev.today : false,
+      tomorrow: tomorrowTasks.length > 0 ? prev.tomorrow : false,
+      week: weekTasks.length > 0 ? prev.week : false,
+      month: monthTasks.length > 0 ? prev.month : false,
+    })); // resets a banner when that alert type disappears 
+  }, [
+    overdueTasks.length,
+    todayTasks.length,
+    tomorrowTasks.length,
+    weekTasks.length,
+    monthTasks.length,
+  ]);
 
   // FIXED DATE NORMALIZATION
   const toDateOnly = (dateStr) => {
@@ -301,11 +332,51 @@ async function handleUpdateTask(updatedTask) {
       </header>
 
       <main>
-        <StatusBanner type="overdue" count={overdueTasks.length} tasks={overdueTasks} />
-        <StatusBanner type="today" count={todayTasks.length} tasks={todayTasks} />
-        <StatusBanner type="tomorrow" count={tomorrowTasks.length} tasks={tomorrowTasks} />
-        <StatusBanner type="week" count={weekTasks.length} tasks={weekTasks} />
-        <StatusBanner type="month" count={monthTasks.length} tasks={monthTasks} />
+        
+                {!dismissedBanners.overdue && (
+          <StatusBanner
+            type="overdue"
+            count={overdueTasks.length}
+            tasks={overdueTasks}
+            onDismiss={() => handleDismissBanner("overdue")}
+          />
+        )}
+
+        {!dismissedBanners.today && (
+          <StatusBanner
+            type="today"
+            count={todayTasks.length}
+            tasks={todayTasks}
+            onDismiss={() => handleDismissBanner("today")}
+          />
+        )}
+
+        {!dismissedBanners.tomorrow && (
+          <StatusBanner
+            type="tomorrow"
+            count={tomorrowTasks.length}
+            tasks={tomorrowTasks}
+            onDismiss={() => handleDismissBanner("tomorrow")}
+          />
+        )}
+
+        {!dismissedBanners.week && (
+          <StatusBanner
+            type="week"
+            count={weekTasks.length}
+            tasks={weekTasks}
+            onDismiss={() => handleDismissBanner("week")}
+          />
+        )}
+
+        {!dismissedBanners.month && (
+          <StatusBanner
+            type="month"
+            count={monthTasks.length}
+            tasks={monthTasks}
+            onDismiss={() => handleDismissBanner("month")}
+          />
+        )}
 
         {error && (
           <div className="error-banner">

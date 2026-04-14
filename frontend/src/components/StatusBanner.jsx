@@ -1,4 +1,4 @@
-export default function StatusBanner({ type, count, tasks }) {
+export default function StatusBanner({ type, count, tasks, onDismiss }) {
   if (!count) return null;
 
   const styles = {
@@ -33,16 +33,42 @@ export default function StatusBanner({ type, count, tasks }) {
   };
 
   return (
-    <div style={{ ...styles[type], padding: 10, marginBottom: 8 }}>
-      <strong>
-        {labels[type]}: {count}
-      </strong>
+    <div
+      style={{
+        ...styles[type],
+        padding: 10,
+        marginBottom: 8,
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+      }}
+    >
+      <div>
+        <strong>
+          {labels[type]}: {count}
+        </strong>
 
-      {tasks?.length > 0 && (
-        <span style={{ marginLeft: 8, opacity: 0.8 }}>
-          ({tasks.map((t) => t.title).join(", ")})
-        </span>
-      )}
+        {tasks?.length > 0 && (
+          <span style={{ marginLeft: 8, opacity: 0.8 }}>
+            ({tasks.map((t) => t.title).join(", ")})
+          </span>
+        )}
+      </div>
+
+      <button
+        onClick={onDismiss}
+        style={{
+          background: "transparent",
+          border: "none",
+          color: styles[type].color,
+          fontSize: "18px",
+          cursor: "pointer",
+          marginLeft: 12,
+        }}
+        aria-label={`Dismiss ${labels[type]} notification`}
+      >
+        ×
+      </button>
     </div>
   );
 }
