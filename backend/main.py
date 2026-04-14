@@ -2,14 +2,14 @@ from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from typing import Optional
-from .database import get_db, init_db
-from .repository import TaskRepository, CourseRepository
-from .schemas import (
+from database import get_db, init_db
+from repository import TaskRepository, CourseRepository
+from schemas import (
     TaskCreate, TaskUpdate, TaskResponse,
     CourseCreate, CourseUpdate, CourseResponse,
 )
-from .service import toggle_task_complete
-from .factory import TaskFactory
+from service import toggle_task_complete
+from factory import TaskFactory
 
 app = FastAPI(title="Taskboard API")
 

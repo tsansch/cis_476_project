@@ -30,5 +30,5 @@ def get_db():
 
 def init_db():
     # Initialize database tables at app startup.
-    from .models import Task, Course
+    from models import Task, Course
     Base.metadata.create_all(bind=engine)

@@ -1,4 +1,4 @@
-from .models import Task
+from models import Task
 from typing import Optional
 from datetime import date
 
