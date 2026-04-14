@@ -1,22 +1,38 @@
 from sqlalchemy.orm import Session
 from repository import TaskRepository
+from strategies import SortByDueDate, SortByPriority, GroupByCourse
+from typing import Optional
 
-# Service layer for backend logic.
-# Routes should call functions here so business logic stays in one place.
+
+STRATEGIES = {
+    "due_date": SortByDueDate(),
+    "priority": SortByPriority(),
+    "course": GroupByCourse(),
+}
+
 
 def toggle_task_complete(db: Session, task_id: str):
-    """
-    Toggle a task's completed status.
-
-    Steps:
-    1) Load the task from the repository
-    2) Flip completed (True/False)
-    3) Save and return the updated task
-    """
     repo = TaskRepository(db)
     task = repo.get_by_id(task_id)
-
     if not task:
         return None
-
     return repo.toggle_complete(task)
+
+
+def get_sorted_filtered_tasks(
+    db: Session,
+    sort_by: str = "due_date",
+    course_id: Optional[str] = None,
+    completed: Optional[bool] = None,
+):
+    repo = TaskRepository(db)
+    tasks = repo.get_all()
+
+    if course_id:
+        tasks = [t for t in tasks if t.course_id == course_id]
+
+    if completed is not None:
+        tasks = [t for t in tasks if t.completed == completed]
+
+    strategy = STRATEGIES.get(sort_by, SortByDueDate())
+    return strategy.apply(tasks)
