@@ -1,5 +1,5 @@
 // FilterBar controls sorting and filtering for the task list.
-export default function FilterBar({ filters, onChange }) {
+export default function FilterBar({ filters, onChange, groupByCourse, onToggleGroup }) {
   if (!filters || !onChange) {
     return <p className="muted">Sort and filter controls (not implemented yet)</p>;
   }
@@ -58,6 +58,18 @@ export default function FilterBar({ filters, onChange }) {
           />
         </label>
       </div>
+
+      {onToggleGroup && (
+        <div style={{ marginTop: 12, paddingTop: 12, borderTop: "1px solid #e5e7eb" }}>
+          <button 
+            className={`btn ${groupByCourse ? "btn-primary" : ""}`}
+            onClick={onToggleGroup}
+            type="button"
+          >
+            {groupByCourse ? "Show Normal List" : "Group by Course"}
+          </button>
+        </div>
+      )}
     </div>
   );
 }

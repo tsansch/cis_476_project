@@ -6,7 +6,7 @@ import TaskCard from "./TaskCard";
 
 // TaskList shows the Tasks page.
 // Tasks come from App so Weekly View can use the same list.
-export default function TaskList({ tasks, onCreateTask, onUpdateTask, onDeleteTask }) {
+export default function TaskList({ tasks, courses = [], onCreateTask, onUpdateTask, onDeleteTask }) {
   const [filters, setFilters] = useState({
     status: "all",
     priority: "all",
@@ -74,16 +74,15 @@ export default function TaskList({ tasks, onCreateTask, onUpdateTask, onDeleteTa
     <div>
       <h3 className="page-title">Tasks</h3>
 
-      <FilterBar filters={filters} onChange={setFilters} />
-
-      <div style={{ marginTop: 10 }}>
-        <button onClick={() => setGroupByCourse(!groupByCourse)}>
-          {groupByCourse ? "Show Normal List" : "Group by Course"}
-        </button>
-      </div>
+      <FilterBar 
+        filters={filters} 
+        onChange={setFilters}
+        groupByCourse={groupByCourse}
+        onToggleGroup={() => setGroupByCourse(!groupByCourse)}
+      />
 
       <div className="card" style={{ marginTop: 12 }}>
-        <TaskForm onCreate={onCreateTask} />
+        <TaskForm onCreate={onCreateTask} courses={courses} />
       </div>
 
       <div style={{ marginTop: 16 }}>
