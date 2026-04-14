@@ -151,7 +151,7 @@ export default function TaskCard({ task, onUpdate, onDelete }) {
         </>
       ) : (
         <>
-          <div className="card-header" style={{ alignItems: "center" }}>
+          <div className="card-header">
             <h3>Edit Task</h3>
 
             <div style={{ display: "flex", gap: 8 }}>

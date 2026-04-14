@@ -9,7 +9,7 @@ export default function FilterBar({ filters, onChange }) {
       <div className="card-header">
         <h3>Sort and Filter</h3>
         <span className="badge">Optional</span>
-        </div>
+      </div>
 
       <div className="filter-grid">
         <label>
