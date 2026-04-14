@@ -1,18 +1,13 @@
 import { useState } from "react";
 
-export default function TaskForm({ onCreate }) {
+export default function TaskForm({ onCreate, courses = [] }) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [priority, setPriority] = useState("Medium");
   const [dueDate, setDueDate] = useState("");
   const [courseTag, setCourseTag] = useState("");
-
-  // NEW STATES
-  const [taskType, setTaskType] = useState("Normal");
   const [isRepeating, setIsRepeating] = useState(false);
   const [repeatType, setRepeatType] = useState("weekly");
-  const [isUrgent, setIsUrgent] = useState(false);
-
   const [error, setError] = useState("");
 
   function handleSubmit(e) {
@@ -35,30 +30,21 @@ export default function TaskForm({ onCreate }) {
       priority,
       dueDate,
       courseTag: courseTag.trim() || null,
-
-      // TYPE
-      type: taskType,
-
-      // ✅ REPEATING SYSTEM (THIS IS THE FIX)
       repeating: isRepeating,
       repeatType: isRepeating ? repeatType : null,
-
-      // URGENT
-      urgent: !!isUrgent,
+      urgent: priority === "High",
     };
 
     if (onCreate) onCreate(newTask);
 
-    // RESET ALL FIELDS
+    // Reset form
     setTitle("");
     setDescription("");
     setPriority("Medium");
     setDueDate("");
     setCourseTag("");
-    setTaskType("Normal");
     setIsRepeating(false);
     setRepeatType("weekly");
-    setIsUrgent(false);
   }
 
   return (
@@ -67,7 +53,6 @@ export default function TaskForm({ onCreate }) {
 
       {error && <div className="task-form-error">{error}</div>}
 
-      {/* TITLE */}
       <label>
         Title *
         <input
@@ -77,7 +62,6 @@ export default function TaskForm({ onCreate }) {
         />
       </label>
 
-      {/* DESCRIPTION */}
       <label>
         Description
         <textarea
@@ -87,7 +71,6 @@ export default function TaskForm({ onCreate }) {
         />
       </label>
 
-      {/* PRIORITY + DATE */}
       <div className="task-form-row">
         <label>
           Priority
@@ -108,60 +91,50 @@ export default function TaskForm({ onCreate }) {
         </label>
       </div>
 
-      {/* COURSE */}
-      <label>
-        Course tag
-        <input
-          value={courseTag}
-          onChange={(e) => setCourseTag(e.target.value)}
-        />
-      </label>
-
-      {/* TASK TYPE */}
-      <label>
-        Task Type
-        <select value={taskType} onChange={(e) => setTaskType(e.target.value)}>
-          <option>Normal</option>
-          <option>Exam</option>
-          <option>Assignment</option>
-          <option>Project</option>
-        </select>
-      </label>
-
-      {/* REPEATING */}
-      <label style={{ marginTop: 10 }}>
-        <input
-          type="checkbox"
-          checked={isRepeating}
-          onChange={(e) => setIsRepeating(e.target.checked)}
-        />
-        Repeating Task
-      </label>
-
-      {/* REPEAT TYPE */}
-      {isRepeating && (
+      <div className="task-form-row">
         <label>
-          Repeat Every
+          Course tag
+          {courses.length > 0 ? (
+            <select
+              value={courseTag}
+              onChange={(e) => setCourseTag(e.target.value)}
+            >
+              <option value="">-- Select Course --</option>
+              {courses.map((c) => (
+                <option key={c.id} value={c.name}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
+          ) : (
+            <input
+              value={courseTag}
+              onChange={(e) => setCourseTag(e.target.value)}
+              placeholder="e.g., CIS 476"
+            />
+          )}
+        </label>
+
+        <label>
+          Repeating
           <select
-            value={repeatType}
-            onChange={(e) => setRepeatType(e.target.value)}
+            value={isRepeating ? repeatType : "none"}
+            onChange={(e) => {
+              if (e.target.value === "none") {
+                setIsRepeating(false);
+              } else {
+                setIsRepeating(true);
+                setRepeatType(e.target.value);
+              }
+            }}
           >
+            <option value="none">No repeat</option>
             <option value="daily">Daily</option>
             <option value="weekly">Weekly</option>
             <option value="monthly">Monthly</option>
           </select>
         </label>
-      )}
-
-      {/* URGENT */}
-      <label>
-        <input
-          type="checkbox"
-          checked={isUrgent}
-          onChange={(e) => setIsUrgent(e.target.checked)}
-        />
-        Mark as Urgent
-      </label>
+      </div>
 
       <button type="submit" className="btn btn-primary">
         Create task
