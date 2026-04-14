@@ -4,6 +4,9 @@ import "./styles/app.css";
 import TaskList from "./components/TaskList";
 import WeeklyView from "./components/WeeklyView";
 import CourseTag from "./components/CourseTag";
+import repeatStrategy from "./components/repeatStrategy";
+import reminderService from "./components/reminderService";
+import StatusBanner from "./components/StatusBanner";
 
 import {
   fetchTasks,
@@ -14,8 +17,6 @@ import {
   transformTaskFromApi,
   transformCourseFromApi,
 } from "./api";
-
-import reminderService from "./components/reminderService";
 
 export default function App() {
   const [view, setView] = useState("tasks");
@@ -41,40 +42,46 @@ export default function App() {
     reminderService.notify(tasks);
   }, [tasks]);
 
+  // FIXED DATE NORMALIZATION
   const toDateOnly = (dateStr) => {
     if (!dateStr) return null;
-    return new Date(dateStr).toISOString().split("T")[0];
+
+    const [year, month, day] = dateStr.split("T")[0].split("-");
+    return new Date(Number(year), Number(month) - 1, Number(day));
   };
 
+  // STATUS CALCULATION (FIXED)
   useEffect(() => {
     const listener = (tasksList) => {
-      const today = new Date().toISOString().split("T")[0];
+      const today = new Date();
+      const todayOnly = new Date(
+        today.getFullYear(),
+        today.getMonth(),
+        today.getDate()
+      );
 
-      const tomorrowDate = new Date();
-      tomorrowDate.setDate(tomorrowDate.getDate() + 1);
-      const tomorrow = tomorrowDate.toISOString().split("T")[0];
+      const tomorrow = new Date(todayOnly);
+      tomorrow.setDate(tomorrow.getDate() + 1);
 
-      const weekEndDate = new Date();
-      weekEndDate.setDate(weekEndDate.getDate() + 7);
-      const weekEnd = weekEndDate.toISOString().split("T")[0];
+      const weekEnd = new Date(todayOnly);
+      weekEnd.setDate(weekEnd.getDate() + 7);
 
-      const monthEndDate = new Date();
-      monthEndDate.setMonth(monthEndDate.getMonth() + 1);
-      const monthEnd = monthEndDate.toISOString().split("T")[0];
+      const monthEnd = new Date(todayOnly);
+      monthEnd.setMonth(monthEnd.getMonth() + 1);
 
       const overdue = tasksList.filter((t) => {
         const d = toDateOnly(t.dueDate);
-        return d && d < today && !t.completed;
+        return d && d < todayOnly && !t.completed;
       });
 
       const todayList = tasksList.filter((t) => {
         const d = toDateOnly(t.dueDate);
-        return d === today && !t.completed;
+        return d && d.getTime() === todayOnly.getTime() && !t.completed;
       });
 
       const tomorrowList = tasksList.filter((t) => {
         const d = toDateOnly(t.dueDate);
-        return d === tomorrow && !t.completed;
+        return d && d.getTime() === tomorrow.getTime() && !t.completed;
       });
 
       const weekList = tasksList.filter((t) => {
@@ -98,29 +105,7 @@ export default function App() {
     return () => reminderService.unsubscribe(listener);
   }, []);
 
-
-  // REPEATING TASK STRATEGY
-
-  const repeatStrategy = {
-    daily: (date) => {
-      const d = new Date(date);
-      d.setDate(d.getDate() + 1);
-      return d.toISOString().split("T")[0];
-    },
-
-    weekly: (date) => {
-      const d = new Date(date);
-      d.setDate(d.getDate() + 7);
-      return d.toISOString().split("T")[0];
-    },
-
-    monthly: (date) => {
-      const d = new Date(date);
-      d.setMonth(d.getMonth() + 1);
-      return d.toISOString().split("T")[0];
-    },
-  };
-
+  // REPEATING TASK LOGIC
   const generateNextTask = (task) => {
     if (!task.repeating || !task.repeatType) return null;
 
@@ -147,7 +132,6 @@ export default function App() {
       setTasks(data.map(transformTaskFromApi));
     } catch (err) {
       setError("Failed to load tasks. Is the backend running?");
-      console.error(err);
     } finally {
       setLoading(false);
     }
@@ -161,7 +145,7 @@ export default function App() {
       console.error(err);
     }
   }
-
+  
   async function handleCreateTask(taskData) {
   try {
     let courseId = taskData.courseId; 
@@ -174,7 +158,7 @@ export default function App() {
       );
 
       if (existing) {
-        courseId = existing.id; 
+        courseId = existing.id;
       } else {
         const res = await fetch("http://localhost:8000/courses", {
           method: "POST",
@@ -197,10 +181,7 @@ export default function App() {
       courseId,
     });
 
-    setTasks((prev) => [
-      transformTaskFromApi(created),
-      ...prev,
-    ]); 
+    setTasks((prev) => [transformTaskFromApi(created), ...prev]);
   } catch (err) {
     setError("Failed to create task");
     console.error(err);
@@ -284,7 +265,6 @@ async function handleUpdateTask(updatedTask) {
       setTasks((prev) => prev.filter((t) => t.id !== taskId));
     } catch (err) {
       setError("Failed to delete task");
-      console.error(err);
     }
   }
 
@@ -299,31 +279,43 @@ async function handleUpdateTask(updatedTask) {
         </div>
 
         <nav className="tabs">
-          <button className={`tab-btn ${view === "tasks" ? "active" : ""}`} onClick={() => setView("tasks")}>Tasks</button>
-          <button className={`tab-btn ${view === "weekly" ? "active" : ""}`} onClick={() => setView("weekly")}>Weekly</button>
-          <button className={`tab-btn ${view === "courses" ? "active" : ""}`} onClick={() => setView("courses")}>Courses</button>
+          <button
+            className={`tab-btn ${view === "tasks" ? "active" : ""}`}
+            onClick={() => setView("tasks")}
+          >
+            Tasks
+          </button>
+          <button
+            className={`tab-btn ${view === "weekly" ? "active" : ""}`}
+            onClick={() => setView("weekly")}
+          >
+            Weekly
+          </button>
+          <button
+            className={`tab-btn ${view === "courses" ? "active" : ""}`}
+            onClick={() => setView("courses")}
+          >
+            Courses
+          </button>
         </nav>
       </header>
 
       <main>
-        {overdueTasks.length > 0 && (
-          <div className="reminder-banner">
-            <strong>Reminder:</strong> You have {overdueTasks.length} overdue task{overdueTasks.length > 1 ? "s" : ""}!
-            <span style={{ marginLeft: 8, color: "#6b7280" }}>
-              ({overdueTasks.map(t => t.title).join(", ")})
-            </span>
-          </div>
-        )}
+        <StatusBanner type="overdue" count={overdueTasks.length} tasks={overdueTasks} />
+        <StatusBanner type="today" count={todayTasks.length} tasks={todayTasks} />
+        <StatusBanner type="tomorrow" count={tomorrowTasks.length} tasks={tomorrowTasks} />
+        <StatusBanner type="week" count={weekTasks.length} tasks={weekTasks} />
+        <StatusBanner type="month" count={monthTasks.length} tasks={monthTasks} />
 
         {error && (
           <div className="error-banner">
             {error}
-            <button className="btn" onClick={() => setError(null)}>Dismiss</button>
+            <button onClick={() => setError(null)}>Dismiss</button>
           </div>
         )}
 
         {loading ? (
-          <p className="muted">Loading tasks...</p>
+          <p>Loading tasks...</p>
         ) : (
           <>
             {view === "tasks" && (
@@ -337,7 +329,6 @@ async function handleUpdateTask(updatedTask) {
             )}
 
             {view === "weekly" && <WeeklyView tasks={tasks} />}
-
             {view === "courses" && <CourseTag courses={courses} />}
           </>
         )}
