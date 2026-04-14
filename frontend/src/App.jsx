@@ -98,9 +98,8 @@ export default function App() {
     return () => reminderService.unsubscribe(listener);
   }, []);
 
-  // =========================
+
   // REPEATING TASK STRATEGY
-  // =========================
 
   const repeatStrategy = {
     daily: (date) => {
@@ -164,119 +163,120 @@ export default function App() {
   }
 
   async function handleCreateTask(taskData) {
-    try {
-      let courseId = null;
+  try {
+    let courseId = taskData.courseId; 
+    const rawCourse = taskData.courseTag?.trim();
 
-      const rawCourse = taskData.courseTag?.trim();
-
-      if (rawCourse) {
-        const normalizedInput = normalizeCourse(rawCourse);
-
-        const existing = courses.find(
-          (c) => normalizeCourse(c.name) === normalizedInput
-        );
-
-        if (existing) {
-          courseId = existing.id;
-        } else {
-          const res = await fetch("http://localhost:8000/courses", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              name: rawCourse.toUpperCase().replace(/\s+/g, ""),
-            }),
-          });
-
-          const newCourse = await res.json();
-          courseId = newCourse.id;
-
-          setCourses((prev) => [
-            ...prev,
-            transformCourseFromApi(newCourse),
-          ]);
-        }
-      }
-
-      const created = await createTask({
-        ...taskData,
-        courseId,
-      });
-
-      setTasks((prev) => [
-        transformTaskFromApi(created),
-        ...prev,
-      ]);
-    } catch (err) {
-      setError("Failed to create task");
-      console.error(err);
-    }
-  }
-
-  async function handleUpdateTask(updatedTask) {
-    try {
-      // Handle course tag change
-      let courseId = updatedTask.courseId;
-      const rawCourse = updatedTask.courseTag?.trim();
-
-      if (rawCourse) {
-        const normalizedInput = normalizeCourse(rawCourse);
-        const existing = courses.find(
-          (c) => normalizeCourse(c.name) === normalizedInput
-        );
-
-        if (existing) {
-          courseId = existing.id;
-        } else {
-          // Create new course if it doesn't exist
-          const res = await fetch("http://localhost:8000/courses", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              name: rawCourse.toUpperCase().replace(/\s+/g, ""),
-            }),
-          });
-          const newCourse = await res.json();
-          courseId = newCourse.id;
-          setCourses((prev) => [...prev, transformCourseFromApi(newCourse)]);
-        }
-      } else {
-        courseId = null;
-      }
-
-      const updated = await updateTask(updatedTask.id, {
-        ...updatedTask,
-        courseId,
-        course_id: courseId,
-      });
-
-      const finalTask = {
-        ...transformTaskFromApi(updated),
-        repeating: updatedTask.repeating || updated.is_recurring || false,
-        repeatType: updatedTask.repeatType || null,
-      };
-
-      setTasks((prev) =>
-        prev.map((t) => (t.id === updated.id ? finalTask : t))
+    if (rawCourse) {
+      const normalizedInput = normalizeCourse(rawCourse);
+      const existing = courses.find(
+        (c) => normalizeCourse(c.name) === normalizedInput
       );
 
-      // Handle repeating tasks
-      if (finalTask.completed === true && finalTask.repeating === true) {
-        const nextTask = generateNextTask(finalTask);
+      if (existing) {
+        courseId = existing.id; 
+      } else {
+        const res = await fetch("http://localhost:8000/courses", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: rawCourse.toUpperCase().replace(/\s+/g, ""),
+          }),
+        });
 
-        if (nextTask) {
-          const created = await createTask({
-            ...nextTask,
-            courseId,
-          });
-
-          setTasks((prev) => [transformTaskFromApi(created), ...prev]);
-        }
+        const newCourse = await res.json();
+        courseId = newCourse.id; // save the new course id
+        setCourses((prev) => [...prev, transformCourseFromApi(newCourse)]); // add new course to frontend state
       }
-    } catch (err) {
-      setError("Failed to update task");
-      console.error(err);
+    } else {
+      courseId = null; // clear course if no tag provided
     }
+
+    const created = await createTask({
+      ...taskData,
+      courseId,
+    });
+
+    setTasks((prev) => [
+      transformTaskFromApi(created),
+      ...prev,
+    ]); 
+  } catch (err) {
+    setError("Failed to create task");
+    console.error(err);
   }
+}
+
+async function handleUpdateTask(updatedTask) {
+  try {
+    const existingTask = tasks.find((t) => t.id === updatedTask.id); // get the old version before updating
+
+    let courseId = updatedTask.courseId;
+    const rawCourse = updatedTask.courseTag?.trim();
+
+    if (rawCourse) {
+      const normalizedInput = normalizeCourse(rawCourse);
+      const existing = courses.find(
+        (c) => normalizeCourse(c.name) === normalizedInput
+      );
+
+      if (existing) {
+        courseId = existing.id; // use existing course if it already exists
+      } else {
+        const res = await fetch("http://localhost:8000/courses", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: rawCourse.toUpperCase().replace(/\s+/g, ""),
+          }),
+        });
+
+        const newCourse = await res.json();
+        courseId = newCourse.id; // save the new course id
+        setCourses((prev) => [...prev, transformCourseFromApi(newCourse)]); // add new course to frontend state
+      }
+    } else {
+      courseId = null; // clear course if user removed it
+    }
+
+    const updated = await updateTask(updatedTask.id, {
+      ...updatedTask,
+      courseId,
+      course_id: courseId,
+    });
+
+    const finalTask = {
+      ...transformTaskFromApi(updated),
+      repeating: updatedTask.repeating ?? updated.is_recurring ?? false, // keep recurring value after update
+      repeatType: updatedTask.repeatType ?? updated.repeat_type ?? null, // keep repeat type after update
+    };
+
+    setTasks((prev) =>
+      prev.map((t) => (t.id === updated.id ? finalTask : t))
+    ); // replace old task in state with the updated task
+
+    const justCompleted =
+      existingTask &&
+      existingTask.completed === false &&
+      finalTask.completed === true; // only run recurring logic when task changes from incomplete to complete
+
+    if (justCompleted && finalTask.repeating && finalTask.repeatType) {
+      const nextTask = generateNextTask(finalTask); // build the next recurring task
+
+      if (nextTask) {
+        const created = await createTask({
+          ...nextTask,
+          courseId,
+        });
+
+        setTasks((prev) => [transformTaskFromApi(created), ...prev]); // add the next recurring task to the list
+      }
+    }
+  } catch (err) {
+    setError("Failed to update task");
+    console.error(err);
+  }
+}
 
   async function handleDeleteTask(taskId) {
     try {

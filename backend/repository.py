@@ -23,6 +23,8 @@ class TaskRepository:
         priority: str = "Medium",
         due_date: Optional[date] = None,
         course_id: Optional[str] = None,
+        is_recurring: bool = False,  # stores whether the task repeats (4/14)
+        repeat_type: Optional[str] = None,  # stores daily, weekly, or monthly (4/14)
     ) -> Task:
         # Create new task
         task = Task(
@@ -31,6 +33,8 @@ class TaskRepository:
             priority=priority,
             due_date=due_date,
             course_id=course_id,
+            is_recurring=is_recurring,  # save recurring flag (4/14)
+            repeat_type=repeat_type,  # save repeat type (4/14)
         )
         self.db.add(task)
         self.db.commit()

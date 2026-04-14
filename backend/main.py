@@ -66,6 +66,7 @@ def create_task(task_data: TaskCreate, db: Session = Depends(get_db)):
         due_date=task_data.due_date,
         course_id=task_data.course_id,
         is_recurring=getattr(task_data, "is_recurring", False),
+        repeat_type=getattr(task_data, "repeat_type", None),  # pass repeat type into factory (4/14)
     )
     return repo.create(
         title=task_fields["title"],
@@ -73,6 +74,8 @@ def create_task(task_data: TaskCreate, db: Session = Depends(get_db)):
         priority=task_fields["priority"],
         due_date=task_fields["due_date"],
         course_id=task_fields["course_id"],
+        is_recurring=task_fields["is_recurring"],  # save recurring flag (4/14)
+        repeat_type=task_fields["repeat_type"],  # save repeat type (4/14)
     )
 
 

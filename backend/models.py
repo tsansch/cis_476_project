@@ -28,6 +28,8 @@ class Task(Base):
     due_date = Column(Date, nullable=True)
     completed = Column(Boolean, nullable=False, default=False)
     is_recurring = Column(Boolean, nullable=False, default=False)  # added
+    repeat_type = Column(String(20), nullable=True)  # stores daily, weekly, or monthly (4/14)
+
 
     course_id = Column(String(36), ForeignKey("courses.id"), nullable=True)
     course = relationship("Course", back_populates="tasks")

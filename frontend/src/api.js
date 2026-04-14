@@ -1,6 +1,6 @@
 const API_BASE = "http://localhost:8000";
 
-// ============ TASKS ============
+// TASKS 
 
 export async function fetchTasks() {
   const res = await fetch(`${API_BASE}/tasks`);
@@ -18,7 +18,8 @@ export async function createTask(taskData) {
       priority: taskData.priority || "Medium",
       due_date: taskData.dueDate || null,
       course_id: taskData.courseId || null,
-      is_recurring: taskData.repeating || false,
+      is_recurring: taskData.repeating || false, // send whether the task repeats (4/14)
+      repeat_type: taskData.repeatType || null, // send how it repeats: daily, weekly, monthly (4/14)
     }),
   });
   if (!res.ok) throw new Error("Failed to create task");
@@ -36,7 +37,8 @@ export async function updateTask(taskId, taskData) {
       due_date: taskData.dueDate || null,
       course_id: taskData.courseId || taskData.course_id || null,
       completed: taskData.completed,
-      is_recurring: taskData.repeating || taskData.is_recurring || false,
+      is_recurring: taskData.repeating ?? taskData.is_recurring ?? false, // keep recurring flag when updating (4/14)
+      repeat_type: taskData.repeatType || taskData.repeat_type || null, // keep repeat type when updating (4/14)
     }),
   });
   if (!res.ok) throw new Error("Failed to update task");
@@ -59,7 +61,7 @@ export async function deleteTask(taskId) {
   return true;
 }
 
-// ============ COURSES ============
+//  COURSES 
 
 export async function fetchCourses() {
   const res = await fetch(`${API_BASE}/courses`);
@@ -101,7 +103,7 @@ export async function deleteCourse(courseId) {
   return true;
 }
 
-// ============ TRANSFORMERS ============
+//  TRANSFORMERS 
 
 // Task formatting for frontend
 export function transformTaskFromApi(task) {
@@ -114,7 +116,8 @@ export function transformTaskFromApi(task) {
     completed: task.completed,
     courseTag: task.course?.name || null,
     courseId: task.course_id,
-    repeating: task.is_recurring || false,
+    repeating: task.is_recurring || false, // convert backend recurring flag for frontend use (4/14)
+    repeatType: task.repeat_type || null, // convert backend repeat type for frontend use (4/14)
     urgent: task.priority === "High",
   };
 }

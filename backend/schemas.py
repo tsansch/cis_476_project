@@ -28,6 +28,7 @@ class TaskBase(BaseModel):
     due_date: Optional[date] = None
     course_id: Optional[str] = None
     is_recurring: Optional[bool] = False  # added
+    repeat_type: Optional[str] = None  # stores daily, weekly, or monthly (4/14)
 
 class TaskCreate(TaskBase):
     pass
@@ -40,6 +41,7 @@ class TaskUpdate(BaseModel):
     course_id: Optional[str] = None
     completed: Optional[bool] = None
     is_recurring: Optional[bool] = None  # added
+    repeat_type: Optional[str] = None  # allows repeat type to be updated (4/14)
 
 class TaskResponse(TaskBase):
     id: str
