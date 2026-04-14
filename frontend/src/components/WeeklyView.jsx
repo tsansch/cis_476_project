@@ -1,20 +1,31 @@
+function parseLocalDate(dateStr) {
+  // Parse YYYY-MM-DD as local date (not UTC)
+  if (!dateStr) return null;
+  const [year, month, day] = dateStr.split("-").map(Number);
+  return new Date(year, month - 1, day);
+}
+
 function weekStartLabel(dateStr) {
   if (!dateStr) return "No due date";
 
-  const d = new Date(dateStr);
-  if (Number.isNaN(d.getTime())) return "No due date";
+  const d = parseLocalDate(dateStr);
+  if (!d || Number.isNaN(d.getTime())) return "No due date";
 
   // Start week on Monday
   const day = (d.getDay() + 6) % 7; // Mon=0, Sun=6
   d.setDate(d.getDate() - day);
 
-  return d.toISOString().slice(0, 10); // YYYY-MM-DD (used for grouping + sorting)
+  // Return YYYY-MM-DD format
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const dayNum = String(d.getDate()).padStart(2, "0");
+  return `${year}-${month}-${dayNum}`;
 }
 
 function formatDate(dateStr) {
   if (!dateStr) return "";
-  const d = new Date(dateStr);
-  if (Number.isNaN(d.getTime())) return dateStr;
+  const d = parseLocalDate(dateStr);
+  if (!d || Number.isNaN(d.getTime())) return dateStr;
 
   return d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
 }
