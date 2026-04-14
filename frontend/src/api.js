@@ -18,6 +18,7 @@ export async function createTask(taskData) {
       priority: taskData.priority || "Medium",
       due_date: taskData.dueDate || null,
       course_id: taskData.courseId || null,
+      is_recurring: taskData.repeating || false,
     }),
   });
   if (!res.ok) throw new Error("Failed to create task");
@@ -33,8 +34,9 @@ export async function updateTask(taskId, taskData) {
       description: taskData.description || null,
       priority: taskData.priority || "Medium",
       due_date: taskData.dueDate || null,
-      course_id: taskData.courseId || null,
+      course_id: taskData.courseId || taskData.course_id || null,
       completed: taskData.completed,
+      is_recurring: taskData.repeating || taskData.is_recurring || false,
     }),
   });
   if (!res.ok) throw new Error("Failed to update task");
@@ -112,6 +114,8 @@ export function transformTaskFromApi(task) {
     completed: task.completed,
     courseTag: task.course?.name || null,
     courseId: task.course_id,
+    repeating: task.is_recurring || false,
+    urgent: task.priority === "High",
   };
 }
 
