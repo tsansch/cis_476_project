@@ -116,6 +116,18 @@ main {
   box-shadow: var(--shadow);
 }
 
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.card-header h3 {
+  margin: 0;
+  font-size: 16px;
+}
+
 /* ---------- Form styling ---------- */
 
 .task-form h3 {
