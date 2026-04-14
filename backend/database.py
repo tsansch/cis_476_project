@@ -29,6 +29,6 @@ def get_db():
 
 
 def init_db():
-# Initialize database tables, called at app startup to create all tables.
-    from models import Task, Course 
+    # Initialize database tables at app startup.
+    from .models import Task, Course
     Base.metadata.create_all(bind=engine)

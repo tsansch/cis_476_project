@@ -2,21 +2,30 @@ from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from typing import Optional
-
-from database import get_db, init_db
-from repository import TaskRepository, CourseRepository
-from schemas import (
+from .database import get_db, init_db
+from .repository import TaskRepository, CourseRepository
+from .schemas import (
     TaskCreate, TaskUpdate, TaskResponse,
     CourseCreate, CourseUpdate, CourseResponse,
 )
-from service import toggle_task_complete, get_sorted_filtered_tasks
-from factory import TaskFactory
+from .service import toggle_task_complete
+from .factory import TaskFactory
 
 app = FastAPI(title="Taskboard API")
 
+from fastapi.responses import PlainTextResponse
+import traceback
+
+@app.exception_handler(Exception)
+async def debug_exception_handler(request, exc):
+    return PlainTextResponse(traceback.format_exc(), status_code=500)
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -35,8 +44,8 @@ def get_tasks(
     completed: Optional[bool] = None,
     db: Session = Depends(get_db),
 ):
-    return get_sorted_filtered_tasks(db, sort_by=sort_by, course_id=course_id, completed=completed)
-
+    repo = TaskRepository(db)
+    return repo.get_all()
 
 @app.get("/tasks/{task_id}", response_model=TaskResponse)
 def get_task(task_id: str, db: Session = Depends(get_db)):

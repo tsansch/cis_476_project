@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
-from repository import TaskRepository
-from strategies import SortByDueDate, SortByPriority, GroupByCourse
+from .repository import TaskRepository
+from .strategies import SortByDueDate, SortByPriority, GroupByCourse
 from typing import Optional
 
 
