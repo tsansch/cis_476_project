@@ -1,7 +1,6 @@
 import { useState } from "react";
 
 // TaskCard shows one task in the list.
-// This adds edit controls and a complete toggle.
 export default function TaskCard({ task, onUpdate, onDelete }) {
   const [isEditing, setIsEditing] = useState(false);
 
@@ -11,11 +10,6 @@ export default function TaskCard({ task, onUpdate, onDelete }) {
   const [priority, setPriority] = useState(task.priority || "Medium");
   const [dueDate, setDueDate] = useState(task.dueDate || "");
   const [courseTag, setCourseTag] = useState(task.courseTag || "");
-
-  // =========================
-  // NEW (REPEATING SUPPORT - SAFE ADDITION)
-  // =========================
-  const [repeatType, setRepeatType] = useState(task.repeatType || "none");
 
   function priorityBadgeClass(p) {
     if (p === "High") return "badge badge-priority-high";
@@ -32,10 +26,8 @@ export default function TaskCard({ task, onUpdate, onDelete }) {
       priority,
       dueDate,
       courseTag: courseTag.trim() || null,
-
-      // NEW (SAFE ADDITION)
-      repeatType: task.repeating ? repeatType : task.repeatType,
       repeating: task.repeating,
+      repeatType: task.repeatType,
     };
 
     if (onUpdate) onUpdate(updatedTask);
@@ -48,15 +40,10 @@ export default function TaskCard({ task, onUpdate, onDelete }) {
     setPriority(task.priority || "Medium");
     setDueDate(task.dueDate || "");
     setCourseTag(task.courseTag || "");
-
-    // NEW
-    setRepeatType(task.repeatType || "none");
-
     setIsEditing(false);
   }
 
   function handleToggleComplete() {
-    console.log("TOGGLE CLICKED");
     if (!onUpdate) return;
 
     onUpdate({
@@ -67,16 +54,14 @@ export default function TaskCard({ task, onUpdate, onDelete }) {
     });
   }
 
+  const isHighPriority = task.priority === "High";
+
   return (
     <div
       className="task-card"
       style={{
-        border:
-          task.urgent || task.priority === "High"
-            ? "2px solid red"
-            : "1px solid #ccc",
-        background:
-          task.urgent || task.priority === "High" ? "#fff5f5" : "white",
+        border: isHighPriority ? "2px solid #dc2626" : "1px solid #e5e7eb",
+        background: isHighPriority ? "#fef2f2" : "white",
       }}
     >
       {!isEditing ? (
@@ -90,7 +75,7 @@ export default function TaskCard({ task, onUpdate, onDelete }) {
             }}
           >
             <h4 className="task-card-title" style={{ margin: 0 }}>
-              {task.completed ? `Completed: ${task.title}` : task.title}
+              {task.completed ? <s>{task.title}</s> : task.title}
             </h4>
 
             <div style={{ display: "flex", gap: 8 }}>
@@ -120,25 +105,19 @@ export default function TaskCard({ task, onUpdate, onDelete }) {
           <div className="task-meta-row" style={{ marginTop: 10 }}>
             {task.priority && (
               <span className={priorityBadgeClass(task.priority)}>
-                Priority: {task.priority}
+                {task.priority}
               </span>
             )}
 
             {task.dueDate && <span className="badge">Due: {task.dueDate}</span>}
 
             {task.courseTag && (
-              <span className="badge">Course: {task.courseTag}</span>
+              <span className="badge">{task.courseTag}</span>
             )}
 
-            {/* URGENT BADGE */}
-            {(task.urgent === true || task.urgent === "true") && (
-              <span className="badge badge-priority-high">Urgent</span>
-            )}
-
-            {/* NEW: REPEATING BADGE */}
             {task.repeating && (
               <span className="badge" style={{ background: "#6c5ce7", color: "white" }}>
-                Repeats: {task.repeatType}
+                Repeats {task.repeatType}
               </span>
             )}
           </div>
@@ -211,26 +190,10 @@ export default function TaskCard({ task, onUpdate, onDelete }) {
                 <input
                   value={courseTag}
                   onChange={(e) => setCourseTag(e.target.value)}
+                  placeholder="e.g., CIS 476"
                 />
               </label>
             </div>
-
-            {/* NEW: REPEAT TYPE EDIT (ONLY SHOW IF REPEATING) */}
-            {task.repeating && (
-              <div style={{ marginTop: 10 }}>
-                <label>
-                  Repeat Type
-                  <select
-                    value={repeatType}
-                    onChange={(e) => setRepeatType(e.target.value)}
-                  >
-                    <option value="daily">Daily</option>
-                    <option value="weekly">Weekly</option>
-                    <option value="monthly">Monthly</option>
-                  </select>
-                </label>
-              </div>
-            )}
           </div>
         </>
       )}
