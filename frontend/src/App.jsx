@@ -213,37 +213,63 @@ export default function App() {
   }
 
   async function handleUpdateTask(updatedTask) {
-    console.log("UPDATED TASK:", updatedTask);
-
     try {
-      const updated = await updateTask(updatedTask.id, updatedTask);
+      // Handle course tag change
+      let courseId = updatedTask.courseId;
+      const rawCourse = updatedTask.courseTag?.trim();
+
+      if (rawCourse) {
+        const normalizedInput = normalizeCourse(rawCourse);
+        const existing = courses.find(
+          (c) => normalizeCourse(c.name) === normalizedInput
+        );
+
+        if (existing) {
+          courseId = existing.id;
+        } else {
+          // Create new course if it doesn't exist
+          const res = await fetch("http://localhost:8000/courses", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              name: rawCourse.toUpperCase().replace(/\s+/g, ""),
+            }),
+          });
+          const newCourse = await res.json();
+          courseId = newCourse.id;
+          setCourses((prev) => [...prev, transformCourseFromApi(newCourse)]);
+        }
+      } else {
+        courseId = null;
+      }
+
+      const updated = await updateTask(updatedTask.id, {
+        ...updatedTask,
+        courseId,
+        course_id: courseId,
+      });
 
       const finalTask = {
         ...transformTaskFromApi(updated),
-        repeatType:
-          updatedTask.repeatType ||
-          updated.repeatType ||
-          updatedTask.repeatType ||
-          null,
+        repeating: updatedTask.repeating || updated.is_recurring || false,
+        repeatType: updatedTask.repeatType || null,
       };
 
       setTasks((prev) =>
-        prev.map((t) =>
-          t.id === updated.id ? finalTask : t
-        )
+        prev.map((t) => (t.id === updated.id ? finalTask : t))
       );
 
-     
+      // Handle repeating tasks
       if (finalTask.completed === true && finalTask.repeating === true) {
         const nextTask = generateNextTask(finalTask);
 
         if (nextTask) {
-          const created = await createTask(nextTask);
+          const created = await createTask({
+            ...nextTask,
+            courseId,
+          });
 
-          setTasks((prev) => [
-            transformTaskFromApi(created),
-            ...prev,
-          ]);
+          setTasks((prev) => [transformTaskFromApi(created), ...prev]);
         }
       }
     } catch (err) {
@@ -280,6 +306,15 @@ export default function App() {
       </header>
 
       <main>
+        {overdueTasks.length > 0 && (
+          <div className="reminder-banner">
+            <strong>Reminder:</strong> You have {overdueTasks.length} overdue task{overdueTasks.length > 1 ? "s" : ""}!
+            <span style={{ marginLeft: 8, color: "#6b7280" }}>
+              ({overdueTasks.map(t => t.title).join(", ")})
+            </span>
+          </div>
+        )}
+
         {error && (
           <div className="error-banner">
             {error}
