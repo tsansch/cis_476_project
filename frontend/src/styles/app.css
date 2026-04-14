@@ -251,6 +251,18 @@ main {
   font-size: 14px;
 }
 
+/* ---------- Reminder banner ---------- */
+
+.reminder-banner {
+  padding: 12px 16px;
+  background: #fef3c7;
+  border: 1px solid #fcd34d;
+  border-radius: var(--radius);
+  color: #92400e;
+  margin-bottom: 16px;
+  font-size: 14px;
+}
+
 /* ---------- Placeholder text ---------- */
 
 .muted {
