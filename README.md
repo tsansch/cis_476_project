@@ -37,5 +37,49 @@ Our solution is a simple task management web app where users can create tasks, s
 - frontend/ (React UI)
 - backend/ (FastAPI server)
 
+## Setup Instructions
+
+### Prerequisites
+- Python 3
+- Node.js and npm
+
+### Install Dependencies
+From the project root run:
+
+```bash
+./setup.sh
+```
+This script will:
+- create the backend virtual environment
+- install backend dependencies from requirements.txt
+- install frontend dependencies with npm
+
+## Running the Application
+
+### Start the Backend
+Open a terminal and run:
+```bash
+cd backend
+source .venv/bin/activate
+uvicorn main:app --reload --port 8000
+```
+
+### Start the Frontend
+Open a second terminal and run:
+``` bash
+cd frontend
+npm run dev
+```
+
+Then open the app in your browser at:
+
+http://localhost:5173
+
+
+
 ## Team
-Group 4: Fatima Saad, Marcel Bashi, Marisa Sikes, Tristan Elizalde
+Group 4: 
+- Fatima Saad
+- Marcel Bashi
+- Marisa Sikes
+- Tristan Elizalde
