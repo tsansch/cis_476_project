@@ -14,6 +14,9 @@ import {
   updateTask,
   deleteTask,
   fetchCourses,
+  createCourse,
+  updateCourse,
+  deleteCourse,
   transformTaskFromApi,
   transformCourseFromApi,
 } from "./api";
@@ -176,6 +179,60 @@ export default function App() {
       console.error(err);
     }
   }
+
+  // Add course creation logic (4/14)
+  async function handleAddCourse(name) {
+  if (!name.trim()) return;
+
+  const normalizedInput = normalizeCourse(name);
+  const existing = courses.find(
+    (c) => normalizeCourse(c.name) === normalizedInput
+  );
+
+  if (existing) return existing;
+
+  const newCourse = await createCourse({
+    name: name.trim().toUpperCase().replace(/\s+/g, " "),
+  });
+
+  const transformed = transformCourseFromApi(newCourse);
+
+  setCourses((prev) => [...prev, transformed]);
+  return transformed;
+}
+
+async function handleEditCourse(id, name) {
+  try {
+    const updated = await updateCourse(id, { name: name.trim() });
+    const transformed = transformCourseFromApi(updated);
+
+    setCourses((prev) =>
+      prev.map((c) => (c.id === id ? transformed : c))
+    );
+  } catch (err) {
+    setError("Failed to update course");
+    console.error(err);
+  }
+}
+
+async function handleDeleteCourse(courseId) {
+  try {
+    await deleteCourse(courseId);
+
+    setCourses((prev) => prev.filter((c) => c.id !== courseId));
+
+    setTasks((prev) =>
+      prev.map((t) =>
+        t.courseId === courseId
+          ? { ...t, courseId: null, courseTag: null }
+          : t
+      )
+    );
+  } catch (err) {
+    setError("Failed to delete course");
+    console.error(err);
+  }
+}
   
   async function handleCreateTask(taskData) {
   try {
@@ -384,7 +441,7 @@ async function handleUpdateTask(updatedTask) {
             <button onClick={() => setError(null)}>Dismiss</button>
           </div>
         )}
-
+        
         {loading ? (
           <p>Loading tasks...</p>
         ) : (
@@ -398,12 +455,20 @@ async function handleUpdateTask(updatedTask) {
                 onDeleteTask={handleDeleteTask}
               />
             )}
-
+        
             {view === "weekly" && <WeeklyView tasks={tasks} />}
-            {view === "courses" && <CourseTag courses={courses} />}
+        
+            {view === "courses" && (
+              <CourseTag
+                courses={courses}
+                onAddCourse={handleAddCourse}
+                onEditCourse={handleEditCourse}
+                onDeleteCourse={handleDeleteCourse}
+              />
+            )}
           </>
         )}
       </main>
     </div>
   );
-}
+  }
