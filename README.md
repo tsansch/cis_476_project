@@ -75,7 +75,22 @@ Then open the app in your browser at:
 
 http://localhost:5173
 
+### If fails then you need to check to make sure your dependencies are installed
 
+### Backend (python)
+Open Terminal #1.
+Navigate to the backend folder: cd backend
+Create a Virtual Environment: python -m venv .venv
+Activate the Environment: Mac/Linux: source .venv/bin/activate Windows: .venv\Scripts\activate
+Install the Python tools: pip install -r requirements.txt
+Start the Backend: uvicorn main:app --reload --port 8000
+(Keep this terminal open!)
+
+### Frontend (javascript/react)
+Open Terminal #2.
+Navigate to the frontend folder:cd frontend
+Install the UI tools (npm): npm install
+Start the Frontend: npm run dev
 
 ## Team
 Group 4: 
